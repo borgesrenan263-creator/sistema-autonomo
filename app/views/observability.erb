@@ -1,0 +1,56 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Observabilidade</p>
+    <h2>Operational Observability</h2>
+    <p>Monitora resposta do contato, pagamento e validação técnica externa.</p>
+  </div>
+
+  <form method="POST" action="/observability/scan">
+    <button type="submit" class="pipeline-rescan-btn">Escanear Agora</button>
+  </form>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Total</span>
+    <strong><%= @signals.count %></strong>
+  </div>
+
+  <div>
+    <span>Abertos</span>
+    <strong><%= @signals.count { |s| s["status"] == "open" } %></strong>
+  </div>
+
+  <div>
+    <span>Pagamentos</span>
+    <strong><%= @signals.count { |s| s["signal_type"] == "payment_waiting" } %></strong>
+  </div>
+
+  <div>
+    <span>Validação</span>
+    <strong><%= @signals.count { |s| s["signal_type"] == "validation_missing" } %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Sinais Operacionais</h2>
+  </div>
+
+  <% if @signals.empty? %>
+    <div class="empty-state">Nenhum sinal criado.</div>
+  <% else %>
+    <div class="timeline">
+      <% @signals.each do |s| %>
+        <div class="timeline-item">
+          <small>#<%= s["id"] %> · <%= s["signal_type"] %> · <%= s["severity"] %> · <%= s["status"] %> · <%= s["created_at"] %></small>
+          <strong><%= s["title"] %></strong>
+          <p><%= s["detail"] %></p>
+          <% if s["link"] && !s["link"].empty? %>
+            <a class="btn-link" href="<%= s["link"] %>">Abrir</a>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>

@@ -1,0 +1,45 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Canais Externos</p>
+    <h2>Channel Dispatch</h2>
+    <p>Automação específica para envio externo controlado. SMTP só envia se estiver habilitado em settings.</p>
+  </div>
+
+  <div class="task-actions">
+    <form method="POST" action="/channels/sync">
+      <button type="submit">Sincronizar Outbox</button>
+    </form>
+
+    <form method="POST" action="/channels/run">
+      <button type="submit">Rodar Dispatch</button>
+    </form>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Dispatches</h2>
+  </div>
+
+  <% if @dispatches.empty? %>
+    <div class="empty-state">Nenhum dispatch criado.</div>
+  <% else %>
+    <div class="deliveries-list">
+      <% @dispatches.each do |d| %>
+        <article class="delivery-row">
+          <div class="delivery-row-main">
+            <small>#<%= d["id"] %> · Flow <%= d["flow_id"] %> · Deal <%= d["deal_id"] %></small>
+            <strong><%= d["subject"] %></strong>
+            <p><%= d["recipient"] %></p>
+            <div class="delivery-tags">
+              <span><%= d["provider"] %></span>
+              <span><%= d["status"] %></span>
+              <span><%= d["policy_status"] %></span>
+              <span><%= d["policy_reason"] %></span>
+            </div>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>
