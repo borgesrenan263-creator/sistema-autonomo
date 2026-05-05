@@ -1,0 +1,115 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Respostas / Webhook</p>
+    <h2>Response Inbox</h2>
+    <p>
+      Entrada genérica para respostas externas de email, WhatsApp, GitHub ou formulários. O sistema classifica o retorno e avança o fluxo.
+    </p>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Eventos</span>
+    <strong><%= @events.count %></strong>
+  </div>
+
+  <div>
+    <span>Processados</span>
+    <strong><%= @events.count { |e| e["processed"].to_i == 1 } %></strong>
+  </div>
+
+  <div>
+    <span>Interessados</span>
+    <strong><%= @events.count { |e| e["response_status"] == "interested" } %></strong>
+  </div>
+
+  <div>
+    <span>Mais info</span>
+    <strong><%= @events.count { |e| e["response_status"] == "needs_more_info" } %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Eventos Recebidos</h2>
+      <p class="panel-subtitle">Endpoint: POST /webhooks/responses</p>
+    </div>
+  </div>
+
+  <% if @events.empty? %>
+    <div class="empty-state">Nenhuma resposta recebida ainda.</div>
+  <% else %>
+    <div class="timeline">
+      <% @events.each do |event| %>
+        <div class="timeline-item">
+          <small>
+            #<%= event["id"] %>
+            · <%= event["provider"] %>
+            · <%= event["channel"] %>
+            · processed=<%= event["processed"] %>
+            · valid=<%= event["signature_valid"] %>
+          </small>
+
+          <strong><%= event["response_status"] || "sem status" %></strong>
+
+          <p>
+            Sender: <%= event["sender"] || "-" %> ·
+            Deal: <%= event["deal_id"] || "-" %> ·
+            Flow: <%= event["flow_id"] || "-" %> ·
+            Erro: <%= event["processing_error"] || "-" %>
+          </p>
+
+          <p><%= event["body"] %></p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Outreach recente</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Flow</th>
+          <th>Deal</th>
+          <th>Contato</th>
+          <th>Status</th>
+          <th>Resposta</th>
+          <th>Assunto</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @outreach.each do |o| %>
+          <tr>
+            <td><%= o["id"] %></td>
+            <td><%= o["flow_id"] %></td>
+            <td><%= o["deal_id"] %></td>
+            <td><%= o["contact_id"] %></td>
+            <td><%= o["status"] %></td>
+            <td><%= o["response_status"] || "-" %></td>
+            <td><%= o["subject"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Teste local</h2>
+  </div>
+
+  <pre class="terminal">curl -X POST http://127.0.0.1:4567/webhooks/responses \
+  -H "Content-Type: application/json" \
+  -H "X-RESPONSE-SECRET: seu_segredo" \
+  -d '{"event_id":"resp-test-1","deal_id":3,"body":"Tenho interesse, pode mandar os próximos passos?"}'</pre>
+</section>
