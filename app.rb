@@ -1,5 +1,3 @@
-require_relative "app/routes/delivery_routes"
-require_relative "app/routes/commercial_routes"
 require "sinatra"
 require "json"
 require "time"
@@ -18,6 +16,20 @@ require_relative "app/services/outreach/outreach_policy"
 require_relative "app/services/outreach/outreach_builder"
 require_relative "app/services/outreach/manual_provider"
 require_relative "app/services/outreach/outreach_engine"
+
+# Modular routes
+require_relative "app/routes/delivery_routes"
+require_relative "app/routes/commercial_routes"
+require_relative "app/routes/dashboard_routes"
+require_relative "app/routes/pipeline_routes"
+require_relative "app/routes/static_routes"
+require_relative "app/routes/finance_routes"
+require_relative "app/routes/contact_routes"
+require_relative "app/routes/automation_routes"
+require_relative "app/routes/outreach_routes"
+require_relative "app/routes/system_routes"
+require_relative "app/routes/self_repair_routes"
+
 
 
 
@@ -156,12 +168,4 @@ end
 
 
 
-require_relative "app/routes/dashboard_routes"
-require_relative "app/routes/pipeline_routes"
-require_relative "app/routes/static_routes"
-require_relative "app/routes/finance_routes"
-require_relative "app/routes/contact_routes"
-require_relative "app/routes/automation_routes"
-require_relative "app/routes/outreach_routes"
-require_relative "app/routes/system_routes"
 

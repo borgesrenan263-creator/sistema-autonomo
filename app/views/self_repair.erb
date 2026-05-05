@@ -1,0 +1,74 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Sistema / Auto Reparo</p>
+    <h2>Self Repair Center</h2>
+    <p>
+      Diagnóstico operacional seguro: verifica estrutura, rotas, banco, tabelas, sintaxe Ruby e arquivos críticos.
+    </p>
+  </div>
+
+  <form method="POST" action="/self-repair/run">
+    <button type="submit" class="pipeline-rescan-btn">Executar Auto Reparo</button>
+  </form>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>OK</span>
+    <strong><%= @summary[:ok] %></strong>
+  </div>
+
+  <div>
+    <span>Reparos</span>
+    <strong><%= @summary[:repairs] %></strong>
+  </div>
+
+  <div>
+    <span>Avisos</span>
+    <strong><%= @summary[:warnings] %></strong>
+  </div>
+
+  <div>
+    <span>Erros</span>
+    <strong><%= @summary[:errors] %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Relatório do Auto Reparo</h2>
+      <p class="panel-subtitle"><%= @report_path %></p>
+    </div>
+  </div>
+
+  <pre class="terminal"><%= @report.join %></pre>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>O que o Auto Reparo verifica</h2>
+  </div>
+
+  <div class="executive-summary">
+    <div>
+      <strong>Estrutura</strong>
+      <span>Pastas, arquivos críticos e .keep.</span>
+    </div>
+
+    <div>
+      <strong>Rotas</strong>
+      <span>Arquivos modulares em app/routes.</span>
+    </div>
+
+    <div>
+      <strong>Banco</strong>
+      <span>SQLite e tabelas principais.</span>
+    </div>
+
+    <div>
+      <strong>Sintaxe</strong>
+      <span>ruby -c app.rb.</span>
+    </div>
+  </div>
+</section>

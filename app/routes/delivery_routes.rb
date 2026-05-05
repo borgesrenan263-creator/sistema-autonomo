@@ -146,11 +146,6 @@ get "/entregas" do
   erb :deliveries
 end
 
-require_relative "app/routes/system_routes"
-require_relative "app/routes/contact_routes"
-require_relative "app/routes/finance_routes"
-require_relative "app/routes/outreach_routes"
-require_relative "app/routes/automation_routes"
 
 get "/deliveries/:id/export.txt" do
   delivery = db_one(
