@@ -32,6 +32,7 @@ require_relative "app/routes/outreach_routes"
 require_relative "app/routes/system_routes"
 require_relative "app/routes/self_repair_routes"
 require_relative "app/routes/settings_routes"
+require_relative "app/routes/health_routes"
 
 
 

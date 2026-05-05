@@ -1,0 +1,121 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Sistema / Saúde Operacional</p>
+    <h2>Health Dashboard</h2>
+    <p>
+      Monitoramento de banco, worker, backups, providers, self repair e integridade operacional.
+    </p>
+  </div>
+
+  <form method="POST" action="/backups/run">
+    <button type="submit" class="pipeline-rescan-btn">Gerar Backup Agora</button>
+  </form>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Banco</span>
+    <strong><%= @db_status[:exists] ? "OK" : "missing" %></strong>
+  </div>
+
+  <div>
+    <span>Tasks</span>
+    <strong><%= @counts[:tasks] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Deals</span>
+    <strong><%= @counts[:deals] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Backups</span>
+    <strong><%= @backup[:files].count %></strong>
+  </div>
+</section>
+
+<section class="deal-premium-grid">
+  <div class="deal-premium-card">
+    <span>DB Size</span>
+    <strong><%= (@db_status[:size].to_f / 1024 / 1024).round(2) %> MB</strong>
+    <small><%= @db_status[:path] %></small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Gemini</span>
+    <strong><%= @settings_summary[:gemini_ready] ? "ready" : "missing" %></strong>
+    <small><%= @settings_summary[:gemini_model] %></small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Pix</span>
+    <strong><%= @settings_summary[:pix_provider] || "manual" %></strong>
+    <small>provider atual</small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Worker</span>
+    <strong><%= @settings_summary[:worker_interval] || "300" %>s</strong>
+    <small>intervalo configurado</small>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Backups</h2>
+      <p class="panel-subtitle">Arquivos em /root/backups.</p>
+    </div>
+  </div>
+
+  <% if @backup[:files].empty? %>
+    <div class="empty-state">Nenhum backup encontrado.</div>
+  <% else %>
+    <div class="deliveries-list">
+      <% @backup[:files].each do |file| %>
+        <article class="delivery-row">
+          <div class="delivery-row-main">
+            <small><%= file[:mtime] %></small>
+            <strong><%= file[:name] %></strong>
+            <div class="delivery-tags">
+              <span><%= (file[:size].to_f / 1024 / 1024).round(2) %> MB</span>
+            </div>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Últimas linhas do Worker</h2>
+      <p class="panel-subtitle"><%= @worker[:path] %></p>
+    </div>
+  </div>
+
+  <pre class="terminal"><%= @worker[:last_lines].join %></pre>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Último Self Repair</h2>
+      <p class="panel-subtitle"><%= @self_repair[:path] %></p>
+    </div>
+  </div>
+
+  <pre class="terminal"><%= @self_repair[:last_lines].join %></pre>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Backup Manager Log</h2>
+      <p class="panel-subtitle"><%= @backup[:path] %></p>
+    </div>
+  </div>
+
+  <pre class="terminal"><%= @backup[:last_lines].join %></pre>
+</section>
