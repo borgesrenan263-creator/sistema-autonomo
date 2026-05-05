@@ -1,0 +1,74 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Outreach Engine</p>
+    <h2>Abordagens Autônomas Controladas</h2>
+    <p>
+      Mensagens geradas, validadas por política, marcadas como enviadas e conectadas ao fluxo sequencial.
+    </p>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Total</span>
+    <strong><%= @messages.count %></strong>
+  </div>
+
+  <div>
+    <span>Sent</span>
+    <strong><%= @messages.count { |m| m["status"] == "sent" } %></strong>
+  </div>
+
+  <div>
+    <span>Replied</span>
+    <strong><%= @messages.count { |m| m["status"] == "replied" } %></strong>
+  </div>
+
+  <div>
+    <span>Blocked</span>
+    <strong><%= @messages.count { |m| m["status"] == "blocked" } %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Fila de Outreach</h2>
+  </div>
+
+  <% if @messages.empty? %>
+    <div class="empty-state">
+      Nenhuma abordagem criada ainda.
+    </div>
+  <% else %>
+    <div class="deliveries-list">
+      <% @messages.each do |msg| %>
+        <article class="delivery-row">
+          <div class="delivery-row-main">
+            <small>
+              Outreach #<%= msg["id"] %>
+              · Flow <%= msg["flow_id"] %>
+              · Deal <%= msg["deal_id"] %>
+            </small>
+
+            <strong><%= msg["subject"] %></strong>
+
+            <div class="delivery-tags">
+              <span><%= msg["status"] %></span>
+              <span><%= msg["policy_status"] %></span>
+              <span><%= msg["provider"] %></span>
+              <span><%= msg["contact_name"] || msg["contact_handle"] %></span>
+              <span>R$ <%= msg["deal_value"] %></span>
+            </div>
+          </div>
+
+          <div class="delivery-row-actions">
+            <a class="btn-link" href="/outreach/<%= msg["id"] %>">Abrir</a>
+            <% if msg["flow_id"] %>
+              <a class="btn-link" href="/automations/<%= msg["flow_id"] %>">Flow</a>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>

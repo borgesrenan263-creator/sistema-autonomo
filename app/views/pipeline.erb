@@ -167,6 +167,10 @@
                 <button type="submit">Proposta</button>
               </form>
 
+              <form method="POST" action="/tasks/<%= task["id"] %>/automation/start">
+                <button type="submit">Fluxo Auto</button>
+              </form>
+
               <button type="button" onclick="copyTask('<%= task["id"] %>')">Copiar</button>
             </div>
 

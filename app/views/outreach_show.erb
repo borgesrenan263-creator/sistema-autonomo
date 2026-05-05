@@ -1,0 +1,124 @@
+<section class="deal-hero">
+  <div>
+    <p class="eyebrow">Outreach Message</p>
+    <h2>Mensagem #<%= @message["id"] %></h2>
+    <p><%= @message["task_title"] %></p>
+  </div>
+
+  <div class="deal-hero-value">
+    <span>Status</span>
+    <strong><%= @message["status"] %></strong>
+  </div>
+</section>
+
+<section class="deal-premium-grid">
+  <div class="deal-premium-card">
+    <span>Provider</span>
+    <strong><%= @message["provider"] %></strong>
+    <small><%= @message["channel"] %></small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Policy</span>
+    <strong><%= @message["policy_status"] %></strong>
+    <small><%= @message["policy_reason"] %></small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Contato</span>
+    <strong><%= @message["contact_name"] || "Sem nome" %></strong>
+    <small><%= @message["contact_handle"] || @message["contact_platform"] %></small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Valor</span>
+    <strong>R$ <%= @message["deal_value"] %></strong>
+    <small>Deal associado</small>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2><%= @message["subject"] %></h2>
+    <% if @message["task_url"] && !@message["task_url"].empty? %>
+      <a class="btn-link" href="<%= @message["task_url"] %>" target="_blank">Origem</a>
+    <% end %>
+  </div>
+
+  <pre class="delivery-content" id="outreach-content"><%= @message["message_body"] %></pre>
+
+  <div class="task-actions">
+    <button type="button" onclick="copyOutreach()">Copiar mensagem</button>
+
+    <% if @message["flow_id"] %>
+      <a class="btn-link" href="/automations/<%= @message["flow_id"] %>">Abrir Flow</a>
+    <% end %>
+
+    <% if @message["deal_id"] %>
+      <a class="btn-link" href="/deals/<%= @message["deal_id"] %>">Abrir Deal</a>
+    <% end %>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Registrar resposta</h2>
+  </div>
+
+  <div class="task-actions">
+    <form method="POST" action="/outreach/<%= @message["id"] %>/mark-replied">
+      <input type="hidden" name="response_status" value="interested">
+      <button type="submit">Interessado</button>
+    </form>
+
+    <form method="POST" action="/outreach/<%= @message["id"] %>/mark-replied">
+      <input type="hidden" name="response_status" value="not_interested">
+      <button type="submit">Não interessado</button>
+    </form>
+
+    <form method="POST" action="/outreach/<%= @message["id"] %>/mark-replied">
+      <input type="hidden" name="response_status" value="needs_more_info">
+      <button type="submit">Pediu mais detalhes</button>
+    </form>
+  </div>
+</section>
+
+<section class="panel premium-timeline-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Eventos de Outreach</h2>
+      <p class="panel-subtitle">Histórico auditável da mensagem.</p>
+    </div>
+    <span class="live">OUTREACH</span>
+  </div>
+
+  <% if @events.empty? %>
+    <div class="empty-state">
+      Nenhum evento registrado.
+    </div>
+  <% else %>
+    <div class="timeline">
+      <% @events.each do |event| %>
+        <div class="timeline-item">
+          <small>#<%= event["id"] %> · <%= event["event_type"] %> · <%= event["created_at"] %></small>
+          <strong><%= event["title"] %></strong>
+          <% if event["description"] && !event["description"].empty? %>
+            <p><%= event["description"] %></p>
+          <% end %>
+          <% if event["metadata"] && !event["metadata"].empty? %>
+            <code><%= event["metadata"] %></code>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<script>
+function copyOutreach() {
+  const text = document.getElementById("outreach-content").innerText;
+  navigator.clipboard.writeText(text)
+    .then(() => alert("Mensagem copiada."))
+    .catch(() => alert("Não foi possível copiar."));
+}
+</script>

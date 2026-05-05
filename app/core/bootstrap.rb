@@ -17,3 +17,6 @@ require_relative "../services/commercial/deal_event_logger"
 require_relative "../repositories/task_repository"
 require_relative "../repositories/delivery_repository"
 require_relative "../repositories/deal_repository"
+
+require_relative "../services/automation/automation_event_logger"
+require_relative "../services/automation/automation_engine"

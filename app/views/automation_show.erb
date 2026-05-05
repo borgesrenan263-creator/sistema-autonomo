@@ -1,0 +1,158 @@
+<section class="deal-hero">
+  <div>
+    <p class="eyebrow">Sequential Automation Engine</p>
+    <h2>Flow #<%= @flow["id"] %></h2>
+    <p>
+      <%= @flow["task_title"] %>
+    </p>
+  </div>
+
+  <div class="deal-hero-value">
+    <span>Status</span>
+    <strong><%= @flow["status"] %></strong>
+  </div>
+</section>
+
+<section class="deal-premium-grid">
+  <div class="deal-premium-card">
+    <span>Estado atual</span>
+    <strong><%= @flow["current_state"] %></strong>
+    <small>Máquina de estados</small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Próxima ação</span>
+    <strong><%= @flow["next_action"] || "nenhuma" %></strong>
+    <small>Executa uma etapa por vez</small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Deal</span>
+    <strong>#<%= @flow["deal_id"] || "-" %></strong>
+    <small><%= @flow["deal_status"] || "sem deal" %></small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Valor</span>
+    <strong>R$ <%= @flow["deal_value"] || @flow["suggested_price"] %></strong>
+    <small>Potencial/negociação</small>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Controle do Fluxo</h2>
+  </div>
+
+  <div class="task-actions">
+    <% if @flow["status"] == "blocked" || @flow["status"] == "failed" %>
+      <form method="POST" action="/automations/<%= @flow["id"] %>/resume">
+        <button type="submit">Retomar</button>
+      </form>
+    <% end %>
+
+    <% unless ["completed", "cancelled", "lost"].include?(@flow["status"]) %>
+      <form method="POST" action="/automations/<%= @flow["id"] %>/run-next">
+        <button type="submit">Executar próxima ação</button>
+      </form>
+
+      <form method="POST" action="/automations/<%= @flow["id"] %>/cancel">
+        <button type="submit">Cancelar</button>
+      </form>
+    <% end %>
+
+    <% if @flow["url"] && !@flow["url"].empty? %>
+      <a class="btn-link" href="<%= @flow["url"] %>" target="_blank">Origem</a>
+    <% end %>
+
+    <% if @flow["deal_id"] %>
+      <a class="btn-link" href="/deals/<%= @flow["deal_id"] %>">Deal</a>
+    <% end %>
+  </div>
+
+  <% if @flow["last_error"] && !@flow["last_error"].empty? %>
+    <div class="warning-panel panel">
+      <h2>Último bloqueio/erro</h2>
+      <p><%= @flow["last_error"] %></p>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Etapas Executadas</h2>
+  </div>
+
+  <% if @steps.empty? %>
+    <div class="empty-state">
+      Nenhuma etapa executada ainda.
+    </div>
+  <% else %>
+    <div class="timeline">
+      <% @steps.each do |step| %>
+        <div class="timeline-item">
+          <small>#<%= step["id"] %> · <%= step["step_key"] %> · <%= step["status"] %></small>
+          <strong><%= step["step_key"] %></strong>
+          <% if step["metadata"] && !step["metadata"].empty? %>
+            <code><%= step["metadata"] %></code>
+          <% end %>
+          <% if step["error_message"] && !step["error_message"].empty? %>
+            <p><%= step["error_message"] %></p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel premium-timeline-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Eventos da Automação</h2>
+      <p class="panel-subtitle">Histórico auditável do motor sequencial.</p>
+    </div>
+    <span class="live">FLOW</span>
+  </div>
+
+  <% if @events.empty? %>
+    <div class="empty-state">
+      Nenhum evento registrado.
+    </div>
+  <% else %>
+    <div class="premium-timeline">
+      <% @events.each_with_index do |event, index| %>
+        <article class="premium-timeline-item">
+          <div class="timeline-axis">
+            <div class="timeline-dot info">⚙</div>
+            <% if index < @events.length - 1 %>
+              <div class="timeline-line"></div>
+            <% end %>
+          </div>
+
+          <div class="timeline-card-premium">
+            <div class="timeline-card-top">
+              <div>
+                <span class="timeline-event-id">#<%= event["id"] %></span>
+                <span class="timeline-badge info"><%= event["event_type"] %></span>
+              </div>
+              <time><%= event["created_at"] %></time>
+            </div>
+
+            <h3><%= event["title"] %></h3>
+
+            <% if event["description"] && !event["description"].empty? %>
+              <p><%= event["description"] %></p>
+            <% end %>
+
+            <% if event["metadata"] && !event["metadata"].empty? %>
+              <div class="timeline-metadata">
+                <span>metadata</span>
+                <code><%= event["metadata"] %></code>
+              </div>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>

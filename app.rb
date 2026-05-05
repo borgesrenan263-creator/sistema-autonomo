@@ -10,6 +10,14 @@ require_relative "app/services/execution/local_delivery_builder"
 require_relative "app/services/ai/delivery_generator"
 require_relative "app/services/commercial/proposal_builder"
 require_relative "app/services/commercial/commercial_proposal_generator"
+require_relative "app/services/automation/automation_event_logger"
+require_relative "app/services/automation/automation_engine"
+require_relative "app/services/outreach/outreach_policy"
+require_relative "app/services/outreach/outreach_builder"
+require_relative "app/services/outreach/manual_provider"
+require_relative "app/services/outreach/outreach_engine"
+
+
 
 set :bind, "0.0.0.0"
 set :port, 4567
@@ -890,4 +898,211 @@ get "/deals/:id" do
   )
 
   erb :deal_show
+end
+
+get "/automations" do
+  @page = "automations"
+
+  @flows = db_all(
+    <<~SQL
+      SELECT
+        automation_flows.*,
+        tasks.title AS task_title,
+        tasks.source,
+        deals.status AS deal_status,
+        deals.value AS deal_value
+      FROM automation_flows
+      INNER JOIN tasks ON tasks.id = automation_flows.task_id
+      LEFT JOIN deals ON deals.id = automation_flows.deal_id
+      ORDER BY automation_flows.id DESC
+      LIMIT 250
+    SQL
+  )
+
+  erb :automations
+end
+
+post "/tasks/:id/automation/start" do
+  task = db_one("SELECT * FROM tasks WHERE id = ?", [params[:id]])
+  halt 404, "Task não encontrada" unless task
+
+  engine = AutomationEngine.new(DB)
+  flow = engine.start_for_task(params[:id])
+
+  redirect "/automations/#{flow["id"]}"
+end
+
+post "/automations/:id/run-next" do
+  engine = AutomationEngine.new(DB)
+  engine.run_next(params[:id])
+
+  redirect "/automations/#{params[:id]}"
+end
+
+post "/automations/:id/resume" do
+  flow = db_one("SELECT * FROM automation_flows WHERE id = ?", [params[:id]])
+  halt 404, "Fluxo não encontrado" unless flow
+
+  DB.execute(
+    "UPDATE automation_flows SET status = 'running', last_error = NULL, locked = 0, updated_at = ? WHERE id = ?",
+    [Time.now.iso8601, params[:id]]
+  )
+
+  redirect "/automations/#{params[:id]}"
+end
+
+post "/automations/:id/cancel" do
+  flow = db_one("SELECT * FROM automation_flows WHERE id = ?", [params[:id]])
+  halt 404, "Fluxo não encontrado" unless flow
+
+  DB.execute(
+    "UPDATE automation_flows SET status = 'cancelled', current_state = 'cancelled', next_action = NULL, locked = 0, updated_at = ?, completed_at = ? WHERE id = ?",
+    [Time.now.iso8601, Time.now.iso8601, params[:id]]
+  )
+
+  redirect "/automations/#{params[:id]}"
+end
+
+get "/automations/:id" do
+  @page = "automations"
+
+  @flow = db_one(
+    <<~SQL,
+      SELECT
+        automation_flows.*,
+        tasks.title AS task_title,
+        tasks.source,
+        tasks.url,
+        tasks.quality_status,
+        tasks.quality_reason,
+        tasks.demand_score,
+        tasks.suggested_price,
+        deals.status AS deal_status,
+        deals.value AS deal_value,
+        deals.contact_id
+      FROM automation_flows
+      INNER JOIN tasks ON tasks.id = automation_flows.task_id
+      LEFT JOIN deals ON deals.id = automation_flows.deal_id
+      WHERE automation_flows.id = ?
+    SQL
+    [params[:id]]
+  )
+
+  halt 404, "Fluxo não encontrado" unless @flow
+
+  @steps = db_all(
+    "SELECT * FROM automation_steps WHERE flow_id = ? ORDER BY id DESC LIMIT 100",
+    [params[:id]]
+  )
+
+  @events = db_all(
+    "SELECT * FROM automation_events WHERE flow_id = ? ORDER BY id DESC LIMIT 100",
+    [params[:id]]
+  )
+
+  erb :automation_show
+end
+
+get "/outreach" do
+  @page = "outreach"
+
+  @messages = db_all(
+    <<~SQL
+      SELECT
+        outreach_messages.*,
+        tasks.title AS task_title,
+        contacts.name AS contact_name,
+        contacts.handle AS contact_handle,
+        contacts.platform AS contact_platform,
+        deals.value AS deal_value
+      FROM outreach_messages
+      INNER JOIN tasks ON tasks.id = outreach_messages.task_id
+      LEFT JOIN contacts ON contacts.id = outreach_messages.contact_id
+      LEFT JOIN deals ON deals.id = outreach_messages.deal_id
+      ORDER BY outreach_messages.id DESC
+      LIMIT 250
+    SQL
+  )
+
+  erb :outreach
+end
+
+get "/outreach/:id" do
+  @page = "outreach"
+
+  @message = db_one(
+    <<~SQL,
+      SELECT
+        outreach_messages.*,
+        tasks.title AS task_title,
+        tasks.url AS task_url,
+        contacts.name AS contact_name,
+        contacts.handle AS contact_handle,
+        contacts.platform AS contact_platform,
+        deals.value AS deal_value
+      FROM outreach_messages
+      INNER JOIN tasks ON tasks.id = outreach_messages.task_id
+      LEFT JOIN contacts ON contacts.id = outreach_messages.contact_id
+      LEFT JOIN deals ON deals.id = outreach_messages.deal_id
+      WHERE outreach_messages.id = ?
+    SQL
+    [params[:id]]
+  )
+
+  halt 404, "Mensagem não encontrada" unless @message
+
+  @events = db_all(
+    "SELECT * FROM outreach_events WHERE outreach_message_id = ? ORDER BY id DESC LIMIT 100",
+    [params[:id]]
+  )
+
+  erb :outreach_show
+end
+
+post "/outreach/:id/mark-replied" do
+  message = db_one("SELECT * FROM outreach_messages WHERE id = ?", [params[:id]])
+  halt 404, "Mensagem não encontrada" unless message
+
+  now = Time.now.iso8601
+
+  DB.execute(
+    "UPDATE outreach_messages SET status = 'replied', response_status = ?, replied_at = ?, updated_at = ? WHERE id = ?",
+    [params[:response_status].to_s, now, now, params[:id]]
+  )
+
+  DB.execute(
+    <<~SQL,
+      INSERT INTO outreach_events
+      (outreach_message_id, flow_id, deal_id, event_type, title, description, metadata, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    SQL
+    [
+      message["id"],
+      message["flow_id"],
+      message["deal_id"],
+      "replied",
+      "Resposta registrada",
+      "Resposta marcada como #{params[:response_status]}.",
+      "response_status=#{params[:response_status]}",
+      now
+    ]
+  )
+
+  if params[:response_status] == "interested"
+    DB.execute("UPDATE deals SET status = 'interessado', updated_at = ? WHERE id = ?", [now, message["deal_id"]])
+
+    DB.execute(
+      "UPDATE automation_flows SET current_state = 'interested', next_action = 'create_payment', status = 'running', last_error = NULL, updated_at = ? WHERE id = ?",
+      [now, message["flow_id"]]
+    )
+  elsif params[:response_status] == "not_interested"
+    DB.execute("UPDATE deals SET status = 'perdido', updated_at = ? WHERE id = ?", [now, message["deal_id"]])
+
+    DB.execute(
+      "UPDATE automation_flows SET current_state = 'lost', next_action = NULL, status = 'lost', last_error = NULL, updated_at = ?, completed_at = ? WHERE id = ?",
+      [now, now, message["flow_id"]]
+    )
+  end
+
+  redirect "/outreach/#{params[:id]}"
 end

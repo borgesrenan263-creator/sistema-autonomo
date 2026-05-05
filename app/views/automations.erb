@@ -1,0 +1,78 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Sequential Automation Engine</p>
+    <h2>Automações Sequenciais</h2>
+    <p>
+      Cada fluxo executa uma etapa por vez. A próxima ação só inicia depois da conclusão ou aprovação da anterior.
+    </p>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Total</span>
+    <strong><%= @flows.count %></strong>
+  </div>
+
+  <div>
+    <span>Running</span>
+    <strong><%= @flows.count { |f| f["status"] == "running" } %></strong>
+  </div>
+
+  <div>
+    <span>Blocked</span>
+    <strong><%= @flows.count { |f| f["status"] == "blocked" } %></strong>
+  </div>
+
+  <div>
+    <span>Completed</span>
+    <strong><%= @flows.count { |f| f["status"] == "completed" } %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Fluxos</h2>
+  </div>
+
+  <% if @flows.empty? %>
+    <div class="empty-state">
+      Nenhuma automação criada ainda. Inicie pelo Pipeline.
+    </div>
+  <% else %>
+    <div class="deliveries-list">
+      <% @flows.each do |flow| %>
+        <article class="delivery-row">
+          <div class="delivery-row-main">
+            <small>
+              Flow #<%= flow["id"] %>
+              · Task <%= flow["task_id"] %>
+              · <%= flow["source"] %>
+            </small>
+
+            <strong><%= flow["task_title"] %></strong>
+
+            <div class="delivery-tags">
+              <span><%= flow["status"] %></span>
+              <span><%= flow["current_state"] %></span>
+              <span>Next: <%= flow["next_action"] || "nenhuma" %></span>
+              <% if flow["deal_value"] %>
+                <span>R$ <%= flow["deal_value"] %></span>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="delivery-row-actions">
+            <a class="btn-link" href="/automations/<%= flow["id"] %>">Abrir</a>
+
+            <% unless ["completed", "cancelled", "lost"].include?(flow["status"]) %>
+              <form method="POST" action="/automations/<%= flow["id"] %>/run-next">
+                <button type="submit">Próxima ação</button>
+              </form>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>

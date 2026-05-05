@@ -25,7 +25,7 @@ storage/exports/*
 storage/tmp/*
 !storage/tmp/.keep
 
-# Backups
+# Backups / dumps
 *.tar.gz
 *.zip
 *.sql
@@ -35,5 +35,5 @@ storage/tmp/*
 .vscode/
 .idea/
 
-# Node if ever used
+# Node
 node_modules/
