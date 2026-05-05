@@ -1,0 +1,114 @@
+<section class="page-title">
+  <h2>Contatos</h2>
+  <p>Registro de contatos, canais e referências comerciais.</p>
+</section>
+
+<section class="grid revenue-grid">
+  <div class="card">
+    <span>Total de Contatos</span>
+    <strong><%= @contacts.count %></strong>
+    <small>Base comercial</small>
+  </div>
+
+  <div class="card">
+    <span>GitHub</span>
+    <strong><%= @contacts.count { |c| c["platform"] == "GitHub" } %></strong>
+    <small>Contatos técnicos</small>
+  </div>
+
+  <div class="card">
+    <span>Outros</span>
+    <strong><%= @contacts.count { |c| c["platform"] != "GitHub" } %></strong>
+    <small>Outros canais</small>
+  </div>
+</section>
+
+<section class="dashboard-layout">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Novo Contato</h2>
+    </div>
+
+    <form method="POST" action="/contacts" class="form-grid">
+      <label>
+        Nome
+        <input name="name" placeholder="Nome ou referência">
+      </label>
+
+      <label>
+        Email
+        <input name="email" placeholder="email@exemplo.com">
+      </label>
+
+      <label>
+        Handle / Usuário
+        <input name="handle" placeholder="@usuario ou perfil">
+      </label>
+
+      <label>
+        Plataforma
+        <input name="platform" placeholder="GitHub, Hacker News, LinkedIn, Email...">
+      </label>
+
+      <label>
+        URL de origem
+        <input name="source_url" placeholder="https://...">
+      </label>
+
+      <label>
+        Observações
+        <textarea name="notes" placeholder="Contexto, interesse, próximo passo..."></textarea>
+      </label>
+
+      <button type="submit">Salvar contato</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Lista de Contatos</h2>
+    </div>
+
+    <% if @contacts.empty? %>
+      <div class="empty-state">
+        Nenhum contato registrado ainda.
+      </div>
+    <% else %>
+      <div class="deliveries-list">
+        <% @contacts.each do |contact| %>
+          <article class="delivery-row">
+            <div class="delivery-row-main">
+              <small>
+                #<%= contact["id"] %>
+                · <%= contact["platform"] || "sem plataforma" %>
+                · <%= contact["created_at"] %>
+              </small>
+
+              <strong><%= contact["name"].to_s.empty? ? "Contato sem nome" : contact["name"] %></strong>
+
+              <div class="delivery-tags">
+                <% if contact["email"] && !contact["email"].empty? %>
+                  <span><%= contact["email"] %></span>
+                <% end %>
+
+                <% if contact["handle"] && !contact["handle"].empty? %>
+                  <span><%= contact["handle"] %></span>
+                <% end %>
+
+                <% if contact["notes"] && !contact["notes"].empty? %>
+                  <span><%= contact["notes"][0, 80] %></span>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="delivery-row-actions">
+              <% if contact["source_url"] && !contact["source_url"].empty? %>
+                <a class="btn-link" href="<%= contact["source_url"] %>" target="_blank">Origem</a>
+              <% end %>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</section>

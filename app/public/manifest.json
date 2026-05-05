@@ -1,0 +1,24 @@
+{
+  "name": "Sistema Autônomo",
+  "short_name": "Autônomo",
+  "description": "Central privada de microexecução com IA.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020807",
+  "theme_color": "#00f5ff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

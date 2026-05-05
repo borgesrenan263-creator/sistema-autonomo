@@ -1,0 +1,209 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Pipeline Operacional</p>
+    <h2>Kanban Premium de Oportunidades</h2>
+    <p>
+      Coleta real, Quality Gate, execução com IA, proposta comercial e faturamento em uma esteira única.
+    </p>
+  </div>
+
+  <form method="POST" action="/force-rescan">
+    <button type="submit" class="pipeline-rescan-btn">FORCE_RESCAN</button>
+  </form>
+</section>
+
+<% if params[:inserted] %>
+  <section class="pipeline-scan-result">
+    <div>
+      <span>Novas</span>
+      <strong><%= params[:inserted] %></strong>
+    </div>
+
+    <div>
+      <span>Duplicadas</span>
+      <strong><%= params[:skipped] %></strong>
+    </div>
+
+    <div>
+      <span>Analisadas</span>
+      <strong><%= params[:total] %></strong>
+    </div>
+  </section>
+<% end %>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Total no Pipeline</span>
+    <strong><%= @tasks.count %></strong>
+  </div>
+
+  <div>
+    <span>Monetizáveis</span>
+    <strong><%= @tasks.count { |t| t["quality_status"] == "monetizable" } %></strong>
+  </div>
+
+  <div>
+    <span>Review</span>
+    <strong><%= @tasks.count { |t| t["quality_status"] == "review" } %></strong>
+  </div>
+
+  <div>
+    <span>Faturamento</span>
+    <strong><%= @tasks.count { |t| t["stage"] == "faturamento" } %></strong>
+  </div>
+</section>
+
+<section class="premium-kanban">
+  <% stages = {
+    "coleta" => {
+      title: "01 Coleta",
+      subtitle: "Oportunidades recém-capturadas",
+      icon: "SCAN"
+    },
+    "filtragem" => {
+      title: "02 Filtragem",
+      subtitle: "Sinais priorizados pelo Quality Gate",
+      icon: "GATE"
+    },
+    "execucao" => {
+      title: "03 Execução",
+      subtitle: "Prontas para entrega IA/local",
+      icon: "RUN"
+    },
+    "faturamento" => {
+      title: "04 Faturamento",
+      subtitle: "Entrega pronta para OK/Pago",
+      icon: "PAY"
+    }
+  } %>
+
+  <% stages.each do |stage, meta| %>
+    <% stage_tasks = @tasks.select { |t| t["stage"] == stage } %>
+
+    <div class="premium-kanban-column">
+      <div class="premium-column-header">
+        <div>
+          <span><%= meta[:icon] %></span>
+          <h3><%= meta[:title] %></h3>
+          <p><%= meta[:subtitle] %></p>
+        </div>
+
+        <strong><%= stage_tasks.count %></strong>
+      </div>
+
+      <div class="premium-column-body">
+        <% if stage_tasks.empty? %>
+          <div class="kanban-empty">
+            Nenhuma tarefa nesta etapa.
+          </div>
+        <% end %>
+
+        <% stage_tasks.each do |task| %>
+          <% quality = task["quality_status"] || "review" %>
+          <% quality_class =
+            case quality
+            when "monetizable"
+              "success"
+            when "ignore"
+              "danger"
+            else
+              "warning"
+            end
+          %>
+
+          <article class="premium-task-card">
+            <div class="premium-task-top">
+              <span class="source-pill"><%= task["source"] %></span>
+              <span class="status-pill <%= quality %>"><%= quality %></span>
+            </div>
+
+            <h4><%= task["title"] %></h4>
+
+            <div class="premium-task-stats">
+              <div>
+                <span>Score</span>
+                <strong><%= task["demand_score"] %>/10</strong>
+              </div>
+
+              <div>
+                <span>Valor</span>
+                <strong>R$ <%= task["suggested_price"] %></strong>
+              </div>
+            </div>
+
+            <div class="premium-quality-row">
+              <span class="quality-dot <%= quality_class %>"></span>
+              <div>
+                <strong><%= task["quality_reason"] || "not_evaluated" %></strong>
+                <small>Quality Gate v2</small>
+              </div>
+            </div>
+
+            <% if task["url"] && !task["url"].empty? %>
+              <a class="origin-card-link" href="<%= task["url"] %>" target="_blank">
+                Abrir origem real
+              </a>
+            <% end %>
+
+            <% if task["result"] && !task["result"].empty? %>
+              <details class="premium-result-preview">
+                <summary>Prévia da entrega</summary>
+                <p><%= task["result"].lines.first(8).join %></p>
+              </details>
+            <% end %>
+
+            <div class="premium-task-actions">
+              <% if stage != "faturamento" %>
+                <form method="POST" action="/tasks/<%= task["id"] %>/execute">
+                  <button type="submit">Executar IA</button>
+                </form>
+              <% else %>
+                <form method="POST" action="/tasks/<%= task["id"] %>/ok">
+                  <button type="submit">OK / Pago</button>
+                </form>
+              <% end %>
+
+              <form method="POST" action="/tasks/<%= task["id"] %>/proposal">
+                <button type="submit">Proposta</button>
+              </form>
+
+              <button type="button" onclick="copyTask('<%= task["id"] %>')">Copiar</button>
+            </div>
+
+            <textarea id="copy-<%= task["id"] %>" hidden>
+SISTEMA AUTÔNOMO — TASK
+
+ID: <%= task["id"] %>
+Fonte: <%= task["source"] %>
+Origem: <%= task["url"] %>
+Tarefa: <%= task["title"] %>
+Demanda: <%= task["demand_score"] %>/10
+Quality: <%= task["quality_status"] %> — <%= task["quality_reason"] %>
+Valor sugerido: R$ <%= task["suggested_price"] %>
+Status: <%= task["status"] %>
+Stage: <%= task["stage"] %>
+
+Resultado:
+<%= task["result"] || "Aguardando execução." %>
+            </textarea>
+          </article>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>
+
+<script>
+function copyTask(id) {
+  const el = document.getElementById(`copy-${id}`);
+
+  if (!el) {
+    alert("Task não encontrada.");
+    return;
+  }
+
+  navigator.clipboard.writeText(el.value)
+    .then(() => alert("Task copiada."))
+    .catch(() => alert("Não foi possível copiar."));
+}
+</script>

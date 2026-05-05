@@ -1,0 +1,39 @@
+# Ruby
+.bundle/
+vendor/bundle/
+*.gem
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Database
+data/*.sqlite3
+data/*.sqlite3-*
+*.db
+*.sqlite
+
+# Logs
+*.log
+storage/logs/*
+!storage/logs/.keep
+
+# Exports / temp
+storage/exports/*
+!storage/exports/.keep
+storage/tmp/*
+!storage/tmp/.keep
+
+# Backups
+*.tar.gz
+*.zip
+*.sql
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Node if ever used
+node_modules/

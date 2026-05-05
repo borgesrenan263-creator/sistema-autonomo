@@ -1,0 +1,215 @@
+<section class="trust-strip">
+  <div>
+    <span>Motor</span>
+    <strong>Real-time Opportunity Engine</strong>
+  </div>
+
+  <div>
+    <span>IA</span>
+    <strong>Gemini + Fallback Local</strong>
+  </div>
+
+  <div>
+    <span>Comercial</span>
+    <strong>Deals, Propostas e Pix/manual</strong>
+  </div>
+
+  <div>
+    <span>Controle</span>
+    <strong>Privado / Revisão Humana</strong>
+  </div>
+</section>
+
+<section class="grid stats-grid executive-grid">
+  <div class="card status-card">
+    <span>Status do Sistema</span>
+    <strong>ATIVO / REAL</strong>
+    <small>Operação local privada</small>
+  </div>
+
+  <div class="card">
+    <span>Receita Paga</span>
+    <strong>R$ <%= format('%.2f', @stats[:paid_revenue]) %></strong>
+    <small>Pagamentos confirmados</small>
+  </div>
+
+  <div class="card">
+    <span>Valor Pendente</span>
+    <strong>R$ <%= format('%.2f', @stats[:pending_revenue]) %></strong>
+    <small>Cobranças abertas</small>
+  </div>
+
+  <div class="card">
+    <span>Deals</span>
+    <strong><%= @stats[:total_deals] %></strong>
+    <small><%= @stats[:closed_deals] %> fechados</small>
+  </div>
+
+  <div class="card">
+    <span>Conversão</span>
+    <strong><%= @stats[:conversion_rate] %>%</strong>
+    <small>Deals fechados / total</small>
+  </div>
+
+  <div class="card">
+    <span>Entregas IA</span>
+    <strong><%= @stats[:ai_deliveries] %></strong>
+    <small><%= @stats[:fallback_deliveries] %> fallback local</small>
+  </div>
+
+  <div class="card">
+    <span>Tarefas Reais</span>
+    <strong><%= @stats[:total_tasks] %></strong>
+    <small><%= @stats[:tasks_per_day] %> coletadas hoje</small>
+  </div>
+
+  <div class="card">
+    <span>Histórico OK</span>
+    <strong><%= @stats[:completed] %></strong>
+    <small>Tarefas pagas/validadas</small>
+  </div>
+</section>
+
+<section class="dashboard-layout">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Resumo Executivo</h2>
+    </div>
+
+    <div class="executive-summary">
+      <div>
+        <span>Receita confirmada</span>
+        <strong>R$ <%= format('%.2f', @stats[:paid_revenue]) %></strong>
+      </div>
+
+      <div>
+        <span>Pipeline financeiro</span>
+        <strong>R$ <%= format('%.2f', @stats[:pending_revenue]) %></strong>
+      </div>
+
+      <div>
+        <span>Entregas versionadas</span>
+        <strong><%= @stats[:total_deliveries] %></strong>
+      </div>
+
+      <div>
+        <span>Motor IA</span>
+        <strong><%= @stats[:ai_deliveries] %> IA / <%= @stats[:fallback_deliveries] %> local</strong>
+      </div>
+
+      <div>
+        <span>Último Rescan</span>
+        <strong class="small-strong"><%= @stats[:last_rescan] %></strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel terminal-panel">
+    <div class="panel-header">
+      <h2>Fluxo em Tempo Real</h2>
+      <span class="live">LIVE</span>
+    </div>
+
+    <div class="terminal">
+      <p class="green">SCANNING_API_NODES...</p>
+
+      <% @tasks.first(10).each do |task| %>
+        <div class="terminal-line">
+          <span>[<%= Time.now.strftime("%H:%M") %>]</span>
+          <b><%= task["quality_status"] || task["status"] %>:</b>
+          <em>"<%= task["title"] %>"</em>
+          <% if task["quality_status"] == "monetizable" %>
+            <strong>+ MONETIZÁVEL</strong>
+          <% elsif task["quality_status"] == "ignore" %>
+            <strong>IGNORADA</strong>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<section class="dashboard-layout">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Camadas da Arquitetura</h2>
+    </div>
+
+    <div class="architecture-list">
+      <div class="arch-item">
+        <b>01</b>
+        <div>
+          <strong>Coleta Real</strong>
+          <span>GitHub + Hacker News</span>
+          <small>Worker automático + FORCE_RESCAN manual.</small>
+        </div>
+      </div>
+
+      <div class="arch-item">
+        <b>02</b>
+        <div>
+          <strong>Quality Gate v2</strong>
+          <span>Filtro comercial e segurança</span>
+          <small>Classifica como monetizable, review ou ignore.</small>
+        </div>
+      </div>
+
+      <div class="arch-item">
+        <b>03</b>
+        <div>
+          <strong>Gemini + Fallback</strong>
+          <span>Execução de entregas</span>
+          <small>Retry automático, validação e fallback local.</small>
+        </div>
+      </div>
+
+      <div class="arch-item">
+        <b>04</b>
+        <div>
+          <strong>Comercial + Financeiro</strong>
+          <span>Proposta, deal, Pix/manual e aceite</span>
+          <small>Receita registrada somente após pagamento confirmado.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Próximas Ações Operacionais</h2>
+    </div>
+
+    <div class="action-list">
+      <div class="action-item">
+        <strong>1. Revisar monetizáveis</strong>
+        <span>Ir ao Pipeline e escolher oportunidades com maior score.</span>
+      </div>
+
+      <div class="action-item">
+        <strong>2. Gerar entrega IA</strong>
+        <span>Executar com Gemini e validar conteúdo.</span>
+      </div>
+
+      <div class="action-item">
+        <strong>3. Gerar proposta</strong>
+        <span>Criar proposta comercial e deal.</span>
+      </div>
+
+      <div class="action-item">
+        <strong>4. Confirmar pagamento</strong>
+        <span>Registrar Pix/manual somente após recebimento real.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="principles">
+  <div class="principle">"Todo micro serviço repetitivo merece um robô."</div>
+  <div class="principle">"A escassez é informacional."</div>
+  <div class="principle">"Receita só existe depois de pagamento confirmado."</div>
+</section>
+
+<section class="footer-status">
+  <span>Destino de Recebimento: <strong>PIX configurado</strong></span>
+  <span>Modo: <strong>Privado / Operacional</strong></span>
+</section>

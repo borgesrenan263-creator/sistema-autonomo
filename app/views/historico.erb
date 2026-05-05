@@ -1,0 +1,59 @@
+<section class="page-title">
+  <h2>Histórico de Receitas</h2>
+  <p>Somente tarefas garantidas, concluídas e marcadas como OK.</p>
+</section>
+
+<section class="grid revenue-grid">
+  <div class="card">
+    <span>Tarefas Concluídas OK</span>
+    <strong><%= @completed_tasks.count %></strong>
+    <small>Entregas finalizadas</small>
+  </div>
+
+  <div class="card">
+    <span>Saldo Possível</span>
+    <strong>R$ <%= format('%.2f', @stats[:possible_revenue]) %></strong>
+    <small>Baseado em tarefas OK</small>
+  </div>
+
+  <div class="card">
+    <span>Exportação</span>
+    <strong>CSV</strong>
+    <small><a href="/export/csv">Exportar extrato</a></small>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Tarefas Feitas e Terminadas OK</h2>
+  </div>
+
+  <% if @completed_tasks.empty? %>
+    <div class="empty-state">
+      Nenhuma tarefa terminada OK ainda.
+    </div>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>Fonte</th>
+          <th>Tarefa</th>
+          <th>Demanda</th>
+          <th>Valor</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @completed_tasks.each do |task| %>
+          <tr>
+            <td><%= task["source"] %></td>
+            <td><%= task["title"] %></td>
+            <td><%= task["demand_score"] %>/10</td>
+            <td>R$ <%= task["suggested_price"] %></td>
+            <td><span class="badge-ok">OK</span></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>

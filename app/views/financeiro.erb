@@ -1,0 +1,71 @@
+<section class="page-title">
+  <h2>Financeiro</h2>
+  <p>Cobrança Pix/manual organizada e confirmação de pagamentos.</p>
+</section>
+
+<section class="grid revenue-grid">
+  <div class="card">
+    <span>Pendente</span>
+    <strong>R$ <%= @financial_summary[:pending] %></strong>
+    <small><%= @financial_summary[:pending_count] %> cobranças</small>
+  </div>
+
+  <div class="card">
+    <span>Pago</span>
+    <strong>R$ <%= @financial_summary[:paid] %></strong>
+    <small><%= @financial_summary[:paid_count] %> pagamentos</small>
+  </div>
+
+  <div class="card">
+    <span>Método</span>
+    <strong>PIX</strong>
+    <small>Manual/controlado</small>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Cobranças</h2>
+  </div>
+
+  <% if @payments.empty? %>
+    <div class="empty-state">
+      Nenhuma cobrança criada ainda. Marque um deal como fechado para gerar cobrança Pix/manual.
+    </div>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Task</th>
+          <th>Valor</th>
+          <th>Método</th>
+          <th>Status</th>
+          <th>Referência</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @payments.each do |payment| %>
+          <tr>
+            <td>#<%= payment["id"] %></td>
+            <td><%= payment["task_title"] %></td>
+            <td>R$ <%= payment["amount"] %></td>
+            <td><%= payment["method"] %></td>
+            <td><%= payment["status"] %></td>
+            <td><%= payment["reference"] %></td>
+            <td>
+              <% if payment["status"] != "paid" %>
+                <form method="POST" action="/payments/<%= payment["id"] %>/paid">
+                  <button type="submit">Marcar Pago</button>
+                </form>
+              <% else %>
+                <span class="badge-ok">PAGO</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>

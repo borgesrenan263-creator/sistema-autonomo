@@ -1,0 +1,96 @@
+<section class="page-title">
+  <h2>Sistema / Logs</h2>
+  <p>Monitor operacional do worker, banco, coletas e qualidade das oportunidades.</p>
+</section>
+
+<section class="grid system-grid">
+  <div class="card">
+    <span>Total de Tarefas</span>
+    <strong><%= @system_counts[:total_tasks] %></strong>
+    <small>Banco real</small>
+  </div>
+
+  <div class="card">
+    <span>GitHub</span>
+    <strong><%= @system_counts[:github_tasks] %></strong>
+    <small>Issues reais</small>
+  </div>
+
+  <div class="card">
+    <span>Hacker News</span>
+    <strong><%= @system_counts[:hn_tasks] %></strong>
+    <small>Posts reais</small>
+  </div>
+
+  <div class="card">
+    <span>Monetizáveis</span>
+    <strong><%= @system_counts[:monetizable] %></strong>
+    <small>Quality Gate</small>
+  </div>
+
+  <div class="card">
+    <span>Revisão</span>
+    <strong><%= @system_counts[:review] %></strong>
+    <small>Análise manual</small>
+  </div>
+
+  <div class="card">
+    <span>Ignoradas</span>
+    <strong><%= @system_counts[:ignored] %></strong>
+    <small>Filtro ativo</small>
+  </div>
+
+  <div class="card">
+    <span>Entregas</span>
+    <strong><%= @system_counts[:deliveries] %></strong>
+    <small>Versionadas</small>
+  </div>
+
+  <div class="card">
+    <span>OK / Receita</span>
+    <strong><%= @system_counts[:ok_tasks] %></strong>
+    <small>Validadas</small>
+  </div>
+</section>
+
+<section class="dashboard-layout">
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Últimas Tarefas Coletadas</h2>
+    </div>
+
+    <div class="system-task-list">
+      <% @last_tasks.each do |task| %>
+        <div class="system-task">
+          <small>
+            #<%= task["id"] %>
+            · <%= task["source"] %>
+            · <%= task["quality_status"] %>
+            · <%= task["demand_score"] %>/10
+            · R$ <%= task["suggested_price"] %>
+          </small>
+          <strong><%= task["title"] %></strong>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="panel terminal-panel">
+    <div class="panel-header">
+      <h2>Logs do Worker</h2>
+      <span class="live">LOG</span>
+    </div>
+
+    <div class="terminal">
+      <% if @logs.empty? %>
+        <p class="green">Nenhum log encontrado ainda.</p>
+      <% else %>
+        <% @logs.each do |line| %>
+          <div class="terminal-line">
+            <em><%= line %></em>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</section>

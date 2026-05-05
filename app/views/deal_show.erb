@@ -1,0 +1,176 @@
+<section class="deal-hero">
+  <div>
+    <p class="eyebrow">Timeline Comercial</p>
+    <h2>Deal #<%= @deal["id"] %></h2>
+    <p>
+      Histórico premium de ações, contato, status e movimentações comerciais.
+    </p>
+  </div>
+
+  <div class="deal-hero-value">
+    <span>Valor do Deal</span>
+    <strong>R$ <%= @deal["value"] %></strong>
+  </div>
+</section>
+
+<section class="deal-premium-grid">
+  <div class="deal-premium-card">
+    <span>Status atual</span>
+    <strong><%= @deal["status"] %></strong>
+    <small>Pipeline comercial</small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Contato</span>
+    <strong><%= @deal["contact_name"] || "Sem contato" %></strong>
+    <small><%= @deal["contact_handle"] || @deal["contact_platform"] || "Não vinculado" %></small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Fonte</span>
+    <strong><%= @deal["source"] %></strong>
+    <small>Origem da oportunidade</small>
+  </div>
+
+  <div class="deal-premium-card">
+    <span>Proposta</span>
+    <strong>#<%= @deal["proposal_id"] || "-" %></strong>
+    <small><%= @deal["proposal_title"] || "Sem proposta" %></small>
+  </div>
+</section>
+
+<section class="panel deal-context-panel">
+  <div class="panel-header">
+    <h2><%= @deal["task_title"] %></h2>
+    <div class="deal-header-actions">
+      <% if @deal["url"] && !@deal["url"].empty? %>
+        <a class="btn-link" href="<%= @deal["url"] %>" target="_blank">Origem real</a>
+      <% end %>
+
+      <% if @deal["proposal_id"] %>
+        <a class="btn-link" href="/proposals/<%= @deal["proposal_id"] %>">Proposta</a>
+      <% end %>
+
+      <a class="btn-link" href="/comercial">Comercial</a>
+    </div>
+  </div>
+
+  <div class="deal-context-meta">
+    <div>
+      <span>Task</span>
+      <strong>#<%= @deal["task_id"] %></strong>
+    </div>
+
+    <div>
+      <span>Deal</span>
+      <strong>#<%= @deal["id"] %></strong>
+    </div>
+
+    <div>
+      <span>Status</span>
+      <strong><%= @deal["status"] %></strong>
+    </div>
+
+    <div>
+      <span>Valor</span>
+      <strong>R$ <%= @deal["value"] %></strong>
+    </div>
+  </div>
+</section>
+
+<section class="panel premium-timeline-panel">
+  <div class="panel-header">
+    <div>
+      <h2>Histórico Premium</h2>
+      <p class="panel-subtitle">Sequência auditável de eventos do deal.</p>
+    </div>
+    <span class="live">TIMELINE</span>
+  </div>
+
+  <% if @events.empty? %>
+    <div class="empty-state">
+      Nenhum evento registrado para este deal ainda.
+    </div>
+  <% else %>
+    <div class="premium-timeline">
+      <% @events.each_with_index do |event, index| %>
+        <% event_type = event["event_type"].to_s %>
+
+        <% icon =
+          case event_type
+          when "contact_linked"
+            "👤"
+          when "contact_unlinked"
+            "⛔"
+          when "status_changed"
+            "↗"
+          when "payment_created"
+            "💳"
+          when "payment_paid"
+            "✅"
+          when "acceptance_created"
+            "✍"
+          when "proposal_created"
+            "📄"
+          else
+            "●"
+          end
+        %>
+
+        <% badge_class =
+          case event_type
+          when "payment_paid"
+            "success"
+          when "payment_created"
+            "warning"
+          when "contact_linked"
+            "info"
+          when "contact_unlinked"
+            "danger"
+          when "status_changed"
+            "accent"
+          when "acceptance_created"
+            "success"
+          when "proposal_created"
+            "info"
+          else
+            "neutral"
+          end
+        %>
+
+        <article class="premium-timeline-item">
+          <div class="timeline-axis">
+            <div class="timeline-dot <%= badge_class %>"><%= icon %></div>
+            <% if index < @events.length - 1 %>
+              <div class="timeline-line"></div>
+            <% end %>
+          </div>
+
+          <div class="timeline-card-premium">
+            <div class="timeline-card-top">
+              <div>
+                <span class="timeline-event-id">#<%= event["id"] %></span>
+                <span class="timeline-badge <%= badge_class %>"><%= event_type %></span>
+              </div>
+
+              <time><%= event["created_at"] %></time>
+            </div>
+
+            <h3><%= event["title"] %></h3>
+
+            <% if event["description"] && !event["description"].empty? %>
+              <p><%= event["description"] %></p>
+            <% end %>
+
+            <% if event["metadata"] && !event["metadata"].empty? %>
+              <div class="timeline-metadata">
+                <span>metadata</span>
+                <code><%= event["metadata"] %></code>
+              </div>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>

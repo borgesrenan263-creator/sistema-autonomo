@@ -1,0 +1,89 @@
+<section class="page-title">
+  <h2>Pipeline de Orquestração Real</h2>
+  <p>Lógica de coleta pública, classificação local, dedupe e execução assistida.</p>
+
+  <% if params[:inserted] %>
+    <div class="scan-result">
+      RESCAN REAL:
+      <strong><%= params[:inserted] %></strong> novas /
+      <strong><%= params[:skipped] %></strong> duplicadas /
+      <strong><%= params[:total] %></strong> analisadas
+    </div>
+  <% end %>
+</section>
+
+<section class="pipeline-board">
+  <% stages = {
+    "coleta" => "01 COLETA REAL",
+    "filtragem" => "02 FILTRAGEM",
+    "execucao" => "03 EXECUÇÃO",
+    "faturamento" => "04 FATURAMENTO"
+  } %>
+
+  <% stages.each do |stage, title| %>
+    <div class="pipeline-column">
+      <div class="column-title"><%= title %></div>
+
+      <% @tasks.select { |t| t["stage"] == stage }.each do |task| %>
+        <div class="task-card">
+          <small><%= task["source"] %> · ID <%= task["id"] %></small>
+          <strong><%= task["title"] %></strong>
+
+          <div class="task-meta">
+            <span><%= task["demand_score"] %>/10 DEMANDA</span>
+            <span>R$ <%= task["suggested_price"] %></span>
+          </div>
+
+          <div class="quality-line">
+            <span class="quality <%= task["quality_status"] %>"><%= task["quality_status"] || "review" %></span>
+            <small><%= task["quality_reason"] || "not_evaluated" %></small>
+          </div>
+
+          <% if task["url"] && !task["url"].empty? %>
+            <p>
+              <a href="<%= task["url"] %>" target="_blank">Abrir origem real</a>
+            </p>
+          <% end %>
+
+          <% if task["result"] && !task["result"].empty? %>
+            <p><%= task["result"].lines.first(6).join %></p>
+          <% end %>
+
+          <div class="task-actions">
+            <% if stage != "faturamento" %>
+              <form method="POST" action="/tasks/<%= task["id"] %>/execute">
+                <button type="submit">Executar entrega</button>
+              </form>
+            <% else %>
+              <form method="POST" action="/tasks/<%= task["id"] %>/ok">
+                <button type="submit">Marcar OK / Pago</button>
+              </form>
+            <% end %>
+
+            <button type="button" onclick="copyTask('<%= task["id"] %>')">Copiar</button>
+
+            <form method="POST" action="/tasks/<%= task["id"] %>/proposal">
+              <button type="submit">Gerar proposta</button>
+            </form>
+          </div>
+
+          <textarea id="copy-<%= task["id"] %>" hidden>
+SISTEMA AUTÔNOMO — ENTREGA REAL
+
+Fonte: <%= task["source"] %>
+Origem: <%= task["url"] %>
+Tarefa: <%= task["title"] %>
+Demanda: <%= task["demand_score"] %>/10
+Valor sugerido: R$ <%= task["suggested_price"] %>
+
+Status:
+<%= task["status"] %>
+
+Resultado:
+<%= task["result"] || "Aguardando execução." %>
+          </textarea>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>

@@ -1,0 +1,37 @@
+<section class="page-title">
+  <h2>Entrega #<%= @delivery["id"] %></h2>
+  <p>Versão <%= @delivery["version"] %> · <%= @delivery["category"] %></p>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2><%= @delivery["title"] %></h2>
+    <a class="btn-link" href="<%= @delivery["url"] %>" target="_blank">Abrir origem real</a>
+  </div>
+
+  <div class="delivery-meta">
+    <span>Fonte: <strong><%= @delivery["source"] %></strong></span>
+    <span>Valor sugerido: <strong>R$ <%= @delivery["suggested_price"] %></strong></span>
+    <span>Status: <strong><%= @delivery["status"] %></strong></span>
+    <span>Gerador: <strong><%= @delivery["generator_type"] || "local" %></strong></span>
+    <span>Provider: <strong><%= @delivery["provider"] || "local" %></strong></span>
+    <span>Modelo: <strong><%= @delivery["model"] || "local_delivery_builder" %></strong></span>
+  </div>
+
+  <pre class="delivery-content" id="delivery-content"><%= @delivery["content"] %></pre>
+
+  <div class="task-actions">
+    <button type="button" onclick="copyDelivery()">Copiar entrega</button>
+    <a class="btn-link" href="/deliveries/<%= @delivery["id"] %>/export.txt">Exportar TXT</a>
+    <a class="btn-link" href="/pipeline">Voltar ao Pipeline</a>
+  </div>
+</section>
+
+<script>
+function copyDelivery() {
+  const text = document.getElementById("delivery-content").innerText;
+  navigator.clipboard.writeText(text)
+    .then(() => alert("Entrega copiada."))
+    .catch(() => alert("Não foi possível copiar."));
+}
+</script>

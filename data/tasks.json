@@ -1,0 +1,47 @@
+[
+  {
+    "id": "task-hn-4d410085",
+    "source": "Hacker News",
+    "title": "5 years of freelancing: same work, better pay, and a ceiling",
+    "demand_score": 9,
+    "suggested_price": 554,
+    "status": "faturamento",
+    "stage": "faturamento",
+    "created_at": "2026-05-04T17:01:48+00:00",
+    "result": "Solução pronta para entrega. Gerada por executor local/fallback.",
+    "executed_at": "2026-05-04T17:04:11+00:00"
+  },
+  {
+    "id": "task-so-64b761d3",
+    "source": "Stack Overflow",
+    "title": "Databound ExpandoObject property won't update in dynamic XAML",
+    "demand_score": 7,
+    "suggested_price": 123,
+    "status": "filtragem",
+    "stage": "filtragem",
+    "created_at": "2026-05-04T17:01:48+00:00",
+    "result": null
+  },
+  {
+    "id": "task-dev-0ba0adec",
+    "source": "DEV.to",
+    "title": "Meet Termit - A NodeJS based terminal editor",
+    "demand_score": 9,
+    "suggested_price": 135,
+    "status": "execucao",
+    "stage": "execucao",
+    "created_at": "2026-05-04T17:01:48+00:00",
+    "result": "Solução pronta para entrega com fallback estático."
+  },
+  {
+    "id": "task-gh-7a54eeb3",
+    "source": "GitHub",
+    "title": "No button to start the transcription UX",
+    "demand_score": 8,
+    "suggested_price": 171,
+    "status": "faturamento",
+    "stage": "faturamento",
+    "created_at": "2026-05-04T17:01:48+00:00",
+    "result": "Diagnóstico UX gerado. Pronto para cobrança."
+  }
+]

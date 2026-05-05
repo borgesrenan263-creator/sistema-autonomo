@@ -1,0 +1,115 @@
+<section class="page-title">
+  <h2>Comercial</h2>
+  <p>Pipeline de proposta, abordagem, negociação, fechamento e aceite.</p>
+</section>
+
+<section class="grid system-grid">
+  <div class="card">
+    <span>Deals</span>
+    <strong><%= @commercial_counts[:total_deals] %></strong>
+    <small>Total comercial</small>
+  </div>
+
+  <div class="card">
+    <span>Interessados</span>
+    <strong><%= @commercial_counts[:interessados] %></strong>
+    <small>Negociação ativa</small>
+  </div>
+
+  <div class="card">
+    <span>Valor Aberto</span>
+    <strong>R$ <%= @commercial_counts[:value_open] %></strong>
+    <small>Propostas em aberto</small>
+  </div>
+
+  <div class="card">
+    <span>Fechado</span>
+    <strong>R$ <%= @commercial_counts[:value_closed] %></strong>
+    <small>Deals fechados</small>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Pipeline Comercial</h2>
+  </div>
+
+  <% if @deals.empty? %>
+    <div class="empty-state">
+      Nenhum deal criado ainda. Gere uma proposta a partir de uma task monetizável.
+    </div>
+  <% else %>
+    <div class="deliveries-list">
+      <% @deals.each do |deal| %>
+        <article class="delivery-row">
+          <div class="delivery-row-main">
+            <small>
+              Deal #<%= deal["id"] %>
+              · Task <%= deal["task_id"] %>
+              · <%= deal["source"] %>
+              · R$ <%= deal["value"] %>
+            </small>
+
+            <strong><%= deal["task_title"] %></strong>
+
+            <div class="delivery-tags">
+              <span><%= deal["status"] %></span>
+              <span><%= deal["next_action"] %></span>
+
+              <% if deal["contact_id"] %>
+                <span>Contato: <%= deal["contact_name"] || "##{deal["contact_id"]}" %> <%= deal["contact_handle"] %></span>
+              <% else %>
+                <span>Sem contato vinculado</span>
+              <% end %>
+            </div>
+
+            <form method="POST" action="/deals/<%= deal["id"] %>/contact" class="inline-contact-form">
+              <select name="contact_id">
+                <option value="">Sem contato</option>
+                <% @contacts.each do |contact| %>
+                  <option value="<%= contact["id"] %>" <%= deal["contact_id"].to_i == contact["id"].to_i ? "selected" : "" %>>
+                    #<%= contact["id"] %> — <%= contact["name"] %> / <%= contact["platform"] %> / <%= contact["handle"] %>
+                  </option>
+                <% end %>
+              </select>
+
+              <button type="submit">Vincular</button>
+            </form>
+          </div>
+
+          <div class="delivery-row-actions">
+            <a class="btn-link" href="/deals/<%= deal["id"] %>">Deal</a>
+
+            <% if deal["proposal_id"] %>
+              <a class="btn-link" href="/proposals/<%= deal["proposal_id"] %>">Proposta</a>
+            <% end %>
+
+            <% if deal["url"] && !deal["url"].empty? %>
+              <a class="btn-link" href="<%= deal["url"] %>" target="_blank">Origem</a>
+            <% end %>
+
+            <form method="POST" action="/deals/<%= deal["id"] %>/status">
+              <input type="hidden" name="status" value="abordado">
+              <button type="submit">Abordado</button>
+            </form>
+
+            <form method="POST" action="/deals/<%= deal["id"] %>/status">
+              <input type="hidden" name="status" value="interessado">
+              <button type="submit">Interessado</button>
+            </form>
+
+            <form method="POST" action="/deals/<%= deal["id"] %>/status">
+              <input type="hidden" name="status" value="fechado">
+              <button type="submit">Fechado</button>
+            </form>
+
+            <form method="POST" action="/deals/<%= deal["id"] %>/status">
+              <input type="hidden" name="status" value="perdido">
+              <button type="submit">Perdido</button>
+            </form>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>

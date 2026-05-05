@@ -1,0 +1,90 @@
+<section class="page-title">
+  <h2>Entregas Geradas</h2>
+  <p>Histórico versionado de entregas criadas a partir de oportunidades reais.</p>
+</section>
+
+<section class="grid revenue-grid">
+  <div class="card">
+    <span>Total de Entregas</span>
+    <strong><%= @deliveries_summary[:total_deliveries] %></strong>
+    <small>Registros versionados</small>
+  </div>
+
+  <div class="card">
+    <span>Prontas</span>
+    <strong><%= @deliveries_summary[:ready_deliveries] %></strong>
+    <small>Status ready</small>
+  </div>
+
+  <div class="card">
+    <span>Valor Potencial Único</span>
+    <strong>R$ <%= @deliveries_summary[:unique_potential] %></strong>
+    <small>Sem duplicar versões</small>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Lista de Entregas</h2>
+  </div>
+
+  <% if @deliveries.empty? %>
+    <div class="empty-state">
+      Nenhuma entrega gerada ainda.
+    </div>
+  <% else %>
+    <div class="deliveries-list">
+      <% @deliveries.each do |delivery| %>
+        <article class="delivery-row">
+          <div class="delivery-row-main">
+            <small>
+              #<%= delivery["id"] %>
+              · Task <%= delivery["task_id"] %>
+              · Versão <%= delivery["version"] %>
+            </small>
+
+            <strong><%= delivery["title"] %></strong>
+
+            <div class="delivery-tags">
+              <span><%= delivery["source"] %></span>
+              <span><%= delivery["category"] %></span>
+              <span><%= delivery["status"] %></span>
+              <span><%= delivery["provider"] || "local" %></span>
+              <span><%= delivery["model"] || "local_delivery_builder" %></span>
+              <span>R$ <%= delivery["suggested_price"] %></span>
+              <span><%= delivery["created_at"] %></span>
+            </div>
+          </div>
+
+          <div class="delivery-row-actions">
+            <a class="btn-link" href="/deliveries/<%= delivery["id"] %>">Abrir entrega</a>
+            <a class="btn-link" href="/deliveries/<%= delivery["id"] %>/export.txt">TXT</a>
+
+            <% if delivery["url"] && !delivery["url"].empty? %>
+              <a class="btn-link" href="<%= delivery["url"] %>" target="_blank">Origem</a>
+            <% end %>
+
+            <button type="button" onclick="copyDeliveryFromList('<%= delivery["id"] %>')">Copiar</button>
+          </div>
+
+          <textarea id="delivery-copy-<%= delivery["id"] %>" hidden><%= delivery["content"] %></textarea>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<script>
+function copyDeliveryFromList(id) {
+  const el = document.getElementById(`delivery-copy-${id}`);
+
+  if (!el) {
+    alert("Entrega não encontrada.");
+    return;
+  }
+
+  navigator.clipboard.writeText(el.value)
+    .then(() => alert("Entrega copiada."))
+    .catch(() => alert("Não foi possível copiar."));
+}
+</script>

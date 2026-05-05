@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema Autônomo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-192.svg">
+  <meta name="theme-color" content="#00f5ff">
+
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/enterprise.css">
+  <script defer src="/js/app.js"></script>
+</head>
+<body class="enterprise-ui">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand-mark">
+        <div class="logo">A</div>
+        <div>
+          <strong>SISTEMA</strong>
+          <span>AUTÔNOMO</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-section-label">Operação</div>
+        <a class="<%= @page == 'dashboard' ? 'active' : '' %>" href="/">Dashboard</a>
+        <a class="<%= @page == 'pipeline' ? 'active' : '' %>" href="/pipeline">Pipeline</a>
+        <a class="<%= @page == 'entregas' ? 'active' : '' %>" href="/entregas">Entregas</a>
+
+        <div class="nav-section-label">Comercial</div>
+        <a class="<%= @page == 'comercial' ? 'active' : '' %>" href="/comercial">Comercial</a>
+        <a class="<%= @page == 'contacts' ? 'active' : '' %>" href="/contacts">Contatos</a>
+        <a class="<%= @page == 'financeiro' ? 'active' : '' %>" href="/financeiro">Financeiro</a>
+        <a class="<%= @page == 'historico' ? 'active' : '' %>" href="/historico">Histórico / Receitas</a>
+
+        <div class="nav-section-label">Sistema</div>
+        <a class="<%= @page == 'manifesto' ? 'active' : '' %>" href="/manifesto">Manifesto</a>
+        <a class="<%= @page == 'sistema' ? 'active' : '' %>" href="/sistema">Sistema / Logs</a>
+      </nav>
+
+      <div class="side-card">
+        <small>Status do Sistema</small>
+        <strong>ATIVO / EM ESCALA</strong>
+      </div>
+
+      <div class="side-card">
+        <small>Uso</small>
+        <strong>Privado / Operacional</strong>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Manifesto Microstartup Autônoma</p>
+          <h1>SISTEMA AUTÔNOMO</h1>
+          <p class="subtitle">Orquestração de Micro-Serviços v1.0.4</p>
+        </div>
+
+        <form method="POST" action="/force-rescan">
+          <button class="btn-primary" type="submit">FORCE_RESCAN</button>
+        </form>
+      </header>
+
+      <%= yield %>
+    </main>
+  </div>
+</body>
+</html>

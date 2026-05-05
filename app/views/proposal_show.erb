@@ -1,0 +1,92 @@
+<section class="page-title">
+  <h2>Proposta Comercial #<%= @proposal["id"] %></h2>
+  <p>Proposta gerada a partir de oportunidade pública real.</p>
+</section>
+
+<% if params[:duplicate] == "1" %>
+<section class="panel warning-panel">
+  <div class="panel-header">
+    <h2>Proposta existente reaproveitada</h2>
+  </div>
+  <p>Já existia um deal aberto para esta task. O sistema evitou criar uma proposta duplicada.</p>
+</section>
+<% end %>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2><%= @proposal["title"] %></h2>
+    <a class="btn-link" href="<%= @proposal["url"] %>" target="_blank">Abrir origem</a>
+  </div>
+
+  <div class="delivery-meta">
+    <span>Fonte: <strong><%= @proposal["source"] %></strong></span>
+    <span>Status: <strong><%= @proposal["status"] %></strong></span>
+    <span>Preço: <strong>R$ <%= @proposal["price"] %></strong></span>
+    <span>Gerador: <strong><%= @proposal["generator_type"] || "fallback" %></strong></span>
+    <span>Provider: <strong><%= @proposal["provider"] || "local" %></strong></span>
+    <span>Modelo: <strong><%= @proposal["model"] || "proposal_builder" %></strong></span>
+  </div>
+
+  <pre class="delivery-content" id="proposal-content">PROPOSTA COMERCIAL
+
+Título:
+<%= @proposal["task_title"] %>
+
+DOR IDENTIFICADA
+<%= @proposal["pain_summary"] %>
+
+SOLUÇÃO PROPOSTA
+<%= @proposal["solution_scope"] %>
+
+FORA DO ESCOPO
+<%= @proposal["out_of_scope"] %>
+
+PREÇO SUGERIDO
+R$ <%= @proposal["price"] %>
+
+PRAZO OPERACIONAL
+<%= @proposal["estimated_timeline"] %>
+
+MENSAGEM DE ABORDAGEM
+<%= @proposal["approach_message"] %>
+
+OBSERVAÇÃO
+Esta proposta deve ser revisada por você antes de qualquer contato externo.
+</pre>
+
+  <div class="task-actions">
+    <button type="button" onclick="copyProposal()">Copiar proposta</button>
+    <a class="btn-link" href="/comercial">Voltar ao Comercial</a>
+  </div>
+</section>
+
+<% if @deal %>
+<section class="panel">
+  <div class="panel-header">
+    <h2>Aceite / Prova de Entrega</h2>
+  </div>
+
+  <form method="POST" action="/deals/<%= @deal["id"] %>/acceptance" class="form-grid">
+    <label>
+      Aceito por
+      <input name="accepted_by" placeholder="Nome, usuário ou referência">
+    </label>
+
+    <label>
+      Texto de aceite
+      <textarea name="acceptance_text" placeholder="Ex: Cliente confirmou recebimento e aprovou a entrega."></textarea>
+    </label>
+
+    <button type="submit">Registrar Aceite</button>
+  </form>
+</section>
+<% end %>
+
+<script>
+function copyProposal() {
+  const text = document.getElementById("proposal-content").innerText;
+  navigator.clipboard.writeText(text)
+    .then(() => alert("Proposta copiada."))
+    .catch(() => alert("Não foi possível copiar."));
+}
+</script>
