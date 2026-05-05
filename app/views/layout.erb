@@ -30,6 +30,7 @@
         <a class="<%= @page == 'pipeline' ? 'active' : '' %>" href="/pipeline">Pipeline</a>
         <a class="<%= @page == 'automations' ? 'active' : '' %>" href="/automations">Automações</a>
         <a class="<%= @page == 'concierge' ? 'active' : '' %>" href="/concierge">Concierge</a>
+        <a class="<%= @page == 'notifications' ? 'active' : '' %>" href="/notifications">Notificações</a>
         <a class="<%= @page == 'entregas' ? 'active' : '' %>" href="/entregas">Entregas</a>
 
         <div class="nav-section-label">Comercial</div>
@@ -74,5 +75,30 @@
       <%= yield %>
     </main>
   </div>
+
+<% if defined?(@popup_notifications) && @popup_notifications && !@popup_notifications.empty? %>
+  <div class="notification-popups">
+    <% @popup_notifications.each do |n| %>
+      <div class="notification-popup">
+        <div>
+          <small><%= n["kind"] %></small>
+          <strong><%= n["title"] %></strong>
+          <p><%= n["body"] %></p>
+        </div>
+
+        <div class="notification-popup-actions">
+          <% if n["link"] && !n["link"].empty? %>
+            <a href="<%= n["link"] %>">Abrir</a>
+          <% end %>
+
+          <form method="POST" action="/notifications/<%= n["id"] %>/read">
+            <button type="submit">OK</button>
+          </form>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
 </body>
 </html>

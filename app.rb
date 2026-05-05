@@ -12,13 +12,24 @@ require_relative "app/services/commercial/proposal_builder"
 require_relative "app/services/commercial/commercial_proposal_generator"
 require_relative "app/services/automation/automation_event_logger"
 require_relative "app/services/automation/automation_engine"
+require_relative "app/services/notifications/system_notifier"
 require_relative "app/services/concierge/concierge_engine"
+require_relative "app/services/concierge/concierge_autopilot"
 require_relative "app/services/outreach/outreach_policy"
 require_relative "app/services/outreach/outreach_builder"
 require_relative "app/services/outreach/manual_provider"
 require_relative "app/services/outreach/outreach_engine"
 
 require_relative "config/app_settings"
+
+
+before do
+  begin
+    @popup_notifications = SystemNotifier.new(DB).unread(3) if defined?(SystemNotifier) && defined?(DB)
+  rescue
+    @popup_notifications = []
+  end
+end
 
 # Modular routes
 require_relative "app/routes/delivery_routes"
@@ -35,6 +46,7 @@ require_relative "app/routes/self_repair_routes"
 require_relative "app/routes/settings_routes"
 require_relative "app/routes/health_routes"
 require_relative "app/routes/concierge_routes"
+require_relative "app/routes/notification_routes"
 
 
 

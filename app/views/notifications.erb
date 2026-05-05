@@ -1,0 +1,48 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Sistema / Notificações</p>
+    <h2>Central de Notificações</h2>
+    <p>
+      Eventos importantes gerados pelo Concierge, Health, pagamentos e automações.
+    </p>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Notificações</h2>
+  </div>
+
+  <% if @notifications.empty? %>
+    <div class="empty-state">Nenhuma notificação registrada.</div>
+  <% else %>
+    <div class="deliveries-list">
+      <% @notifications.each do |n| %>
+        <article class="delivery-row">
+          <div class="delivery-row-main">
+            <small>#<%= n["id"] %> · <%= n["kind"] %> · <%= n["status"] %> · <%= n["created_at"] %></small>
+            <strong><%= n["title"] %></strong>
+            <p><%= n["body"] %></p>
+
+            <div class="delivery-tags">
+              <span><%= n["kind"] %></span>
+              <span><%= n["status"] %></span>
+            </div>
+          </div>
+
+          <div class="delivery-row-actions">
+            <% if n["link"] && !n["link"].empty? %>
+              <a class="btn-link" href="<%= n["link"] %>">Abrir</a>
+            <% end %>
+
+            <% if n["status"] == "unread" %>
+              <form method="POST" action="/notifications/<%= n["id"] %>/read">
+                <button type="submit">Marcar lida</button>
+              </form>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>
