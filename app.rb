@@ -154,37 +154,14 @@ def system_stats
   }
 end
 
-get "/" do
-  @page = "dashboard"
-  @tasks = tasks
-  @stats = system_stats
-  erb :dashboard
-end
 
-get "/pipeline" do
-  @page = "pipeline"
-  @tasks = tasks
-  @stats = system_stats
-  erb :pipeline
-end
 
-get "/historico" do
-  @page = "historico"
-  @tasks = tasks
-  @completed_tasks = completed_tasks
-  @stats = system_stats
-  erb :historico
-end
-
-get "/manifesto" do
-  @page = "manifesto"
-  @stats = system_stats
-  erb :manifesto
-end
-
-post "/force-rescan" do
-  result = RealRescan.new(DB).call
-  redirect "/pipeline?inserted=#{result[:inserted]}&skipped=#{result[:skipped]}&total=#{result[:total]}"
-end
-
+require_relative "app/routes/dashboard_routes"
+require_relative "app/routes/pipeline_routes"
+require_relative "app/routes/static_routes"
+require_relative "app/routes/finance_routes"
+require_relative "app/routes/contact_routes"
+require_relative "app/routes/automation_routes"
+require_relative "app/routes/outreach_routes"
+require_relative "app/routes/system_routes"
 
