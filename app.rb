@@ -12,6 +12,7 @@ require_relative "app/services/commercial/proposal_builder"
 require_relative "app/services/commercial/commercial_proposal_generator"
 require_relative "app/services/automation/automation_event_logger"
 require_relative "app/services/automation/automation_engine"
+require_relative "app/services/concierge/concierge_engine"
 require_relative "app/services/outreach/outreach_policy"
 require_relative "app/services/outreach/outreach_builder"
 require_relative "app/services/outreach/manual_provider"
@@ -33,6 +34,7 @@ require_relative "app/routes/system_routes"
 require_relative "app/routes/self_repair_routes"
 require_relative "app/routes/settings_routes"
 require_relative "app/routes/health_routes"
+require_relative "app/routes/concierge_routes"
 
 
 

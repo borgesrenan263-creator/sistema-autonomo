@@ -1,0 +1,141 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Concierge Operacional</p>
+    <h2>Concierge de Permissões</h2>
+    <p>
+      O Concierge interpreta o estado semi-automático dos fluxos e libera a próxima ação com segurança até o pagamento final.
+    </p>
+  </div>
+
+  <form method="POST" action="/concierge/sync">
+    <button type="submit" class="pipeline-rescan-btn">Sincronizar Permissões</button>
+  </form>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Total</span>
+    <strong><%= @requests.count %></strong>
+  </div>
+
+  <div>
+    <span>Pendentes</span>
+    <strong><%= @requests.count { |r| r["status"] == "pending" } %></strong>
+  </div>
+
+  <div>
+    <span>Aprovadas</span>
+    <strong><%= @requests.count { |r| r["status"] == "approved" } %></strong>
+  </div>
+
+  <div>
+    <span>Recusadas</span>
+    <strong><%= @requests.count { |r| r["status"] == "rejected" } %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Permissões Operacionais</h2>
+      <p class="panel-subtitle">Cada permissão representa a próxima ação segura do fluxo.</p>
+    </div>
+  </div>
+
+  <% if @requests.empty? %>
+    <div class="empty-state">Nenhuma permissão criada ainda.</div>
+  <% else %>
+    <div class="deliveries-list">
+      <% @requests.each do |req| %>
+        <article class="delivery-row">
+          <div class="delivery-row-main">
+            <small>
+              Concierge #<%= req["id"] %>
+              · Flow <%= req["flow_id"] %>
+              · Task <%= req["task_id"] %>
+              · Deal <%= req["deal_id"] || "-" %>
+            </small>
+
+            <strong><%= req["title"] %></strong>
+
+            <p><%= req["description"] %></p>
+
+            <div class="delivery-tags">
+              <span><%= req["status"] %></span>
+              <span><%= req["request_type"] %></span>
+              <span>state: <%= req["current_state"] %></span>
+              <span>next: <%= req["next_action"] || "-" %></span>
+              <% if req["deal_value"] %>
+                <span>R$ <%= req["deal_value"] %></span>
+              <% end %>
+            </div>
+
+            <% if req["result_message"] && !req["result_message"].empty? %>
+              <code><%= req["result_message"] %></code>
+            <% end %>
+          </div>
+
+          <div class="delivery-row-actions">
+            <% if req["flow_id"] %>
+              <a class="btn-link" href="/automations/<%= req["flow_id"] %>">Flow</a>
+            <% end %>
+
+            <% if req["deal_id"] %>
+              <a class="btn-link" href="/deals/<%= req["deal_id"] %>">Deal</a>
+            <% end %>
+
+            <% if req["status"] == "pending" && req["request_type"] == "register_response" %>
+              <form method="POST" action="/concierge/requests/<%= req["id"] %>/approve">
+                <input type="hidden" name="response_status" value="interested">
+                <button type="submit">Interessado</button>
+              </form>
+
+              <form method="POST" action="/concierge/requests/<%= req["id"] %>/approve">
+                <input type="hidden" name="response_status" value="needs_more_info">
+                <button type="submit">Mais detalhes</button>
+              </form>
+
+              <form method="POST" action="/concierge/requests/<%= req["id"] %>/approve">
+                <input type="hidden" name="response_status" value="not_interested">
+                <button type="submit">Não interessado</button>
+              </form>
+            <% elsif req["status"] == "pending" && req["request_type"] != "missing_contact" %>
+              <form method="POST" action="/concierge/requests/<%= req["id"] %>/approve">
+                <button type="submit"><%= req["action_label"] || "Aprovar" %></button>
+              </form>
+
+              <form method="POST" action="/concierge/requests/<%= req["id"] %>/reject">
+                <button type="submit">Recusar</button>
+              </form>
+            <% elsif req["status"] == "pending" && req["request_type"] == "missing_contact" %>
+              <span class="btn-link">Vincule contato no Deal</span>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Eventos do Concierge</h2>
+      <p class="panel-subtitle">Trilha de auditoria das permissões.</p>
+    </div>
+  </div>
+
+  <% if @events.empty? %>
+    <div class="empty-state">Nenhum evento registrado.</div>
+  <% else %>
+    <div class="timeline">
+      <% @events.each do |event| %>
+        <div class="timeline-item">
+          <small>#<%= event["id"] %> · Flow <%= event["flow_id"] %> · <%= event["event_type"] %> · <%= event["created_at"] %></small>
+          <strong><%= event["title"] %></strong>
+          <p><%= event["description"] %></p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
