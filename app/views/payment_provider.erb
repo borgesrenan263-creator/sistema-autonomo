@@ -1,0 +1,107 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Financeiro / Pix Provider</p>
+    <h2>Pix Webhook Provider</h2>
+    <p>
+      Recebe confirmação externa de pagamento, registra evento, marca cobrança como paga e libera o fluxo automaticamente.
+    </p>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Eventos</span>
+    <strong><%= @events.count %></strong>
+  </div>
+
+  <div>
+    <span>Processados</span>
+    <strong><%= @events.count { |e| e["processed"].to_i == 1 } %></strong>
+  </div>
+
+  <div>
+    <span>Pagos</span>
+    <strong><%= @payments.count { |p| p["status"] == "paid" } %></strong>
+  </div>
+
+  <div>
+    <span>Pendentes</span>
+    <strong><%= @payments.count { |p| p["status"] == "pending" } %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Últimos Eventos Pix</h2>
+      <p class="panel-subtitle">Webhook endpoint: POST /webhooks/pix</p>
+    </div>
+  </div>
+
+  <% if @events.empty? %>
+    <div class="empty-state">Nenhum webhook Pix recebido ainda.</div>
+  <% else %>
+    <div class="timeline">
+      <% @events.each do |event| %>
+        <div class="timeline-item">
+          <small>#<%= event["id"] %> · <%= event["status"] %> · processed=<%= event["processed"] %> · valid=<%= event["signature_valid"] %></small>
+          <strong><%= event["reference"] || event["txid"] || event["event_id"] || "Evento Pix" %></strong>
+          <p>
+            Payment: <%= event["payment_id"] || "-" %> ·
+            Deal: <%= event["deal_id"] || "-" %> ·
+            Task: <%= event["task_id"] || "-" %> ·
+            Erro: <%= event["processing_error"] || "-" %>
+          </p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Pagamentos Recentes</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Deal</th>
+          <th>Task</th>
+          <th>Valor</th>
+          <th>Status</th>
+          <th>Provider</th>
+          <th>Reference</th>
+          <th>TXID</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @payments.each do |p| %>
+          <tr>
+            <td><%= p["id"] %></td>
+            <td><%= p["deal_id"] %></td>
+            <td><%= p["task_id"] %></td>
+            <td>R$ <%= p["amount"] %></td>
+            <td><%= p["status"] %></td>
+            <td><%= p["provider"] || p["method"] %></td>
+            <td><%= p["reference"] || p["external_reference"] %></td>
+            <td><%= p["txid"] || "-" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Teste local</h2>
+  </div>
+
+  <pre class="terminal">curl -X POST http://127.0.0.1:4567/webhooks/pix \
+  -H "Content-Type: application/json" \
+  -H "X-PIX-SECRET: seu_segredo" \
+  -d '{"event_id":"evt-test-1","reference":"deal-3","status":"paid","amount":720}'</pre>
+</section>

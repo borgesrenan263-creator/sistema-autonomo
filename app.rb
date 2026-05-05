@@ -15,6 +15,7 @@ require_relative "app/services/automation/automation_engine"
 require_relative "app/services/notifications/system_notifier"
 require_relative "app/services/concierge/concierge_engine"
 require_relative "app/services/concierge/concierge_autopilot"
+require_relative "app/services/payments/pix_payment_provider"
 require_relative "app/services/observability/observability_engine"
 require_relative "app/services/channels/channel_dispatch_engine"
 require_relative "app/services/outreach/outreach_policy"
@@ -50,6 +51,7 @@ require_relative "app/routes/health_routes"
 require_relative "app/routes/concierge_routes"
 require_relative "app/routes/notification_routes"
 require_relative "app/routes/channel_observability_routes"
+require_relative "app/routes/payment_provider_routes"
 
 
 
