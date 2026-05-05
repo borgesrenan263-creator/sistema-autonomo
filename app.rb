@@ -17,6 +17,8 @@ require_relative "app/services/outreach/outreach_builder"
 require_relative "app/services/outreach/manual_provider"
 require_relative "app/services/outreach/outreach_engine"
 
+require_relative "config/app_settings"
+
 # Modular routes
 require_relative "app/routes/delivery_routes"
 require_relative "app/routes/commercial_routes"
@@ -29,6 +31,7 @@ require_relative "app/routes/automation_routes"
 require_relative "app/routes/outreach_routes"
 require_relative "app/routes/system_routes"
 require_relative "app/routes/self_repair_routes"
+require_relative "app/routes/settings_routes"
 
 
 

@@ -1,0 +1,108 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Sistema / Configurações</p>
+    <h2>Settings Center</h2>
+    <p>
+      Configurações centrais do Sistema Autônomo. Credenciais sensíveis são mascaradas e não são exibidas em texto puro.
+    </p>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Ambiente</span>
+    <strong><%= @provider_summary[:app_env] %></strong>
+  </div>
+
+  <div>
+    <span>Gemini</span>
+    <strong><%= @provider_summary[:gemini_ready] ? "ready" : "missing" %></strong>
+  </div>
+
+  <div>
+    <span>Pix</span>
+    <strong><%= @provider_summary[:pix_provider] %></strong>
+  </div>
+
+  <div>
+    <span>Worker</span>
+    <strong><%= @provider_summary[:worker_interval] %>s</strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Resumo de Providers</h2>
+      <p class="panel-subtitle">Estado operacional dos provedores configuráveis.</p>
+    </div>
+  </div>
+
+  <div class="executive-summary">
+    <div>
+      <strong>Gemini Model</strong>
+      <span><%= @provider_summary[:gemini_model] %></span>
+    </div>
+
+    <div>
+      <strong>Email Provider</strong>
+      <span><%= @provider_summary[:email_provider] %></span>
+    </div>
+
+    <div>
+      <strong>WhatsApp Provider</strong>
+      <span><%= @provider_summary[:whatsapp_provider] %></span>
+    </div>
+
+    <div>
+      <strong>.env local</strong>
+      <span><%= @env_exists ? "encontrado" : "não encontrado" %></span>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Variáveis de Ambiente</h2>
+      <p class="panel-subtitle">Valores sensíveis aparecem mascarados.</p>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Chave</th>
+          <th>Status</th>
+          <th>Valor</th>
+          <th>Tipo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @settings_rows.each do |row| %>
+          <tr>
+            <td><strong><%= row[:key] %></strong></td>
+            <td><%= row[:configured] ? "configurado" : "pendente" %></td>
+            <td><code><%= row[:value] %></code></td>
+            <td><%= row[:secret] ? "sensível" : "normal" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Como configurar</h2>
+  </div>
+
+  <pre class="terminal">cp .env.example .env
+# edite .env localmente
+ruby app.rb</pre>
+
+  <p class="panel-subtitle">
+    Nunca commite o arquivo .env. Use apenas .env.example como modelo seguro.
+  </p>
+</section>
