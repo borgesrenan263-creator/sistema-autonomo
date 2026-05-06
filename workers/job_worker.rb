@@ -1,6 +1,12 @@
+require "sqlite3"
 require "time"
 
-require_relative "../config/database"
+ROOT = File.expand_path("..", __dir__)
+DB_PATH = File.join(ROOT, "data", "sistema_autonomo.sqlite3")
+
+DB = SQLite3::Database.new(DB_PATH)
+DB.results_as_hash = true
+
 require_relative "../config/app_settings"
 require_relative "../app/core/database_helpers"
 
@@ -20,8 +26,6 @@ require_relative "../app/services/channels/channel_dispatch_engine"
 require_relative "../app/services/observability/observability_engine"
 require_relative "../app/services/validation/validation_engine"
 
-DB = DatabaseConfig.connect unless defined?(DB)
-
 interval = (ENV["JOB_WORKER_INTERVAL_SECONDS"] || "60").to_i
 interval = 60 if interval <= 0
 
@@ -31,7 +35,9 @@ runner = JobRunner.new(DB)
 heartbeat = OpsHeartbeat.new(DB)
 
 if ARGV.include?("--once")
+  heartbeat.beat(component: "job_worker", status: "ok", detail: "once_start")
   result = runner.run_next
+  heartbeat.beat(component: "job_worker", status: "ok", detail: "once_done: #{result.inspect}")
   puts "[#{Time.now.iso8601}] JOB_WORKER_ONCE result=#{result.inspect}"
   exit 0
 end
@@ -49,7 +55,7 @@ loop do
       puts "[#{Time.now.iso8601}] JOB_WORKER_IDLE"
     end
   rescue => e
-    heartbeat.beat(component: "job_worker", status: "error", detail: "#{e.class}: #{e.message}")
+    heartbeat.beat(component: "job_worker", status: "error", detail: "#{e.class}: #{e.message}") rescue nil
     puts "[#{Time.now.iso8601}] JOB_WORKER_ERROR #{e.class}: #{e.message}"
   end
 

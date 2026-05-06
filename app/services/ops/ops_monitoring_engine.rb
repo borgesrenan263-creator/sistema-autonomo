@@ -34,11 +34,19 @@ class OpsMonitoringEngine
 
   def database_status
     begin
-      DB.test_connection
+      if DB.respond_to?(:test_connection)
+        DB.test_connection
+      elsif DB.respond_to?(:get_first_value)
+        DB.get_first_value("SELECT 1")
+      elsif DB.respond_to?(:execute)
+        DB.execute("SELECT 1")
+      else
+        raise "DB adapter não suportado para healthcheck"
+      end
 
       {
         ok: true,
-        adapter: defined?(DatabaseConfig) ? DatabaseConfig.adapter : "unknown"
+        adapter: defined?(DatabaseConfig) ? DatabaseConfig.adapter : DB.class.name
       }
     rescue => e
       {
