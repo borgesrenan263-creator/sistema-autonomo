@@ -43,9 +43,10 @@ class MoneyRecoveryEngine
       SELECT *
       FROM outreach_messages
       WHERE status = 'queued'
+        AND policy_status = 'approved'
         AND (
           dispatch_autopilot_status IS NULL
-          OR dispatch_autopilot_status IN ('queued', 'manual', 'recipient_resolved_waiting_limit')
+          OR dispatch_autopilot_status IN ('queued', 'recipient_resolved_waiting_limit')
         )
       ORDER BY id DESC
       LIMIT 30
