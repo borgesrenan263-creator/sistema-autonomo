@@ -6,6 +6,21 @@
   </div>
 
   <div class="task-actions">
+    <form method="POST" action="/money/recovery/run-followups">
+      <button type="submit" class="pipeline-rescan-btn">Rodar Follow-ups</button>
+    </form>
+
+    <form method="POST" action="/money/recovery/run-dispatch">
+      <button type="submit" class="pipeline-rescan-btn">Rodar Dispatch</button>
+    </form>
+
+    <form method="POST" action="/money/recovery/run-daily-loop">
+      <button type="submit" class="pipeline-rescan-btn">Rodar Daily Loop</button>
+    </form>
+
+    <a class="pipeline-rescan-btn" href="/followups/autopilot">Follow-up Autopilot</a>
+    <a class="pipeline-rescan-btn" href="/dispatch/autopilot">Dispatch Autopilot</a>
+    <a class="pipeline-rescan-btn" href="/ops/queue">Fila Ops</a>
     <a class="pipeline-rescan-btn" href="/money/recovery.json">JSON</a>
     <a class="pipeline-rescan-btn" href="/command-center">Command Center</a>
   </div>
