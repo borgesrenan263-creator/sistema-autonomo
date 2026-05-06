@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+export AUTOPILOT_DAILY_LOOP_INTERVAL_MINUTES="${AUTOPILOT_DAILY_LOOP_INTERVAL_MINUTES:-30}"
+
+ruby -I. -e '
+require "./app"
+snapshot = ProductionReadinessEngine.new(DB).snapshot
+puts "score=#{snapshot[:score]}"
+puts "status=#{snapshot[:status]}"
+puts "blockers=#{snapshot[:blockers].size}"
+puts "warnings=#{snapshot[:warnings].size}"
+snapshot[:checks].each do |c|
+  puts "#{c[:status]} | #{c[:key]} | #{c[:title]} | #{c[:detail]}"
+end
+exit(snapshot[:blockers].empty? ? 0 : 1)
+'

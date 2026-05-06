@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+mkdir -p storage/logs
+
+export APP_ENV="${APP_ENV:-development}"
+export RACK_ENV="${RACK_ENV:-development}"
+export AUTOPILOT_DAILY_LOOP_INTERVAL_MINUTES="${AUTOPILOT_DAILY_LOOP_INTERVAL_MINUTES:-30}"
+export JOB_WORKER_INTERVAL_SECONDS="${JOB_WORKER_INTERVAL_SECONDS:-60}"
+export CHANNEL_DISPATCH_ENABLED="${CHANNEL_DISPATCH_ENABLED:-false}"
+export CHANNEL_DAILY_LIMIT="${CHANNEL_DAILY_LIMIT:-10}"
+export JOB_QUEUE_BASE_URL="${JOB_QUEUE_BASE_URL:-http://127.0.0.1:4567}"
+
+echo "[start_worker] APP_ENV=$APP_ENV RACK_ENV=$RACK_ENV interval=$JOB_WORKER_INTERVAL_SECONDS"
+echo "[start_worker] starting workers/job_worker.rb"
+
+exec ruby workers/job_worker.rb

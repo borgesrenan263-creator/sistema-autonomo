@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+mkdir -p storage/logs
+
+export APP_ENV="${APP_ENV:-development}"
+export RACK_ENV="${RACK_ENV:-development}"
+export AUTOPILOT_DAILY_LOOP_INTERVAL_MINUTES="${AUTOPILOT_DAILY_LOOP_INTERVAL_MINUTES:-30}"
+export JOB_WORKER_INTERVAL_SECONDS="${JOB_WORKER_INTERVAL_SECONDS:-60}"
+export CHANNEL_DISPATCH_ENABLED="${CHANNEL_DISPATCH_ENABLED:-false}"
+export CHANNEL_DAILY_LIMIT="${CHANNEL_DAILY_LIMIT:-10}"
+export JOB_QUEUE_BASE_URL="${JOB_QUEUE_BASE_URL:-http://127.0.0.1:4567}"
+
+echo "[start_local_stack] stopping old processes"
+pkill -9 -f "ruby app.rb" || true
+pkill -9 -f "workers/job_worker.rb" || true
+pkill -9 -f "puma" || true
+
+echo "[start_local_stack] starting app"
+nohup bin/start_app > storage/logs/server.log 2>&1 &
+
+sleep 3
+
+echo "[start_local_stack] starting worker"
+nohup bin/start_worker > storage/logs/job_worker.log 2>&1 &
+
+echo "[start_local_stack] done"
+echo "server log: storage/logs/server.log"
+echo "worker log: storage/logs/job_worker.log"

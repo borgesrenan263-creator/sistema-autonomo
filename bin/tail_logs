@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+echo "---- server.log ----"
+tail -n "${LINES:-40}" storage/logs/server.log 2>/dev/null || true
+
+echo
+echo "---- job_worker.log ----"
+tail -n "${LINES:-40}" storage/logs/job_worker.log 2>/dev/null || true
