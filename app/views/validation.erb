@@ -1,0 +1,100 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Validation Engine</p>
+    <h2>Validação Técnica de Entregas</h2>
+    <p>
+      Checklist técnico seguro para validar entregas, detectar stack, criar evidência e sinalizar revisão manual.
+    </p>
+  </div>
+
+  <form method="POST" action="/validation/run">
+    <button type="submit" class="pipeline-rescan-btn">Validar Pendentes</button>
+  </form>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Runs</span>
+    <strong><%= @runs.count %></strong>
+  </div>
+
+  <div>
+    <span>Validated</span>
+    <strong><%= @runs.count { |r| r["status"] == "validated" } %></strong>
+  </div>
+
+  <div>
+    <span>Manual Review</span>
+    <strong><%= @runs.count { |r| r["status"] == "manual_review" } %></strong>
+  </div>
+
+  <div>
+    <span>Failed</span>
+    <strong><%= @runs.count { |r| r["status"] == "failed" } %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Entregas Recentes</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Delivery</th>
+          <th>Task</th>
+          <th>Versão</th>
+          <th>Status</th>
+          <th>Score</th>
+          <th>Validado em</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @deliveries.each do |d| %>
+          <tr>
+            <td><%= d["id"] %></td>
+            <td><%= d["task_id"] %></td>
+            <td><%= d["version"] %></td>
+            <td><%= d["validation_status"] || "pending" %></td>
+            <td><%= d["validation_score"] || 0 %></td>
+            <td><%= d["validated_at"] || "-" %></td>
+            <td>
+              <form method="POST" action="/deliveries/<%= d["id"] %>/validate">
+                <button type="submit">Validar</button>
+              </form>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Validation Runs</h2>
+  </div>
+
+  <% if @runs.empty? %>
+    <div class="empty-state">Nenhuma validação executada ainda.</div>
+  <% else %>
+    <div class="timeline">
+      <% @runs.each do |run| %>
+        <div class="timeline-item">
+          <small>#<%= run["id"] %> · delivery <%= run["delivery_id"] %> · score <%= run["score"] %> · <%= run["status"] %></small>
+          <strong><%= run["summary"] %></strong>
+          <p>Stack: <%= run["stack_detected"] || "unknown" %></p>
+          <% if run["evidence_path"] && !run["evidence_path"].empty? %>
+            <code><%= run["evidence_path"] %></code>
+          <% end %>
+          <% if run["error"] && !run["error"].empty? %>
+            <p><%= run["error"] %></p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
