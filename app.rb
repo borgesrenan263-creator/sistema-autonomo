@@ -18,6 +18,8 @@ require_relative "app/services/concierge/concierge_autopilot"
 require_relative "app/services/payments/pix_payment_provider"
 require_relative "app/services/responses/response_inbox_provider"
 require_relative "app/services/validation/validation_engine"
+require_relative "app/services/jobs/job_runner"
+require_relative "app/services/jobs/job_queue"
 require_relative "app/services/observability/observability_engine"
 require_relative "app/services/channels/channel_dispatch_engine"
 require_relative "app/services/outreach/outreach_policy"
@@ -57,6 +59,7 @@ require_relative "app/routes/payment_provider_routes"
 require_relative "app/routes/response_inbox_routes"
 require_relative "app/routes/revenue_autopilot_routes"
 require_relative "app/routes/validation_routes"
+require_relative "app/routes/job_routes"
 
 
 

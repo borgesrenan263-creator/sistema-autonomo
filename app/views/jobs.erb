@@ -1,0 +1,118 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Job Queue</p>
+    <h2>Fila de Jobs Operacionais</h2>
+    <p>
+      Centraliza tarefas automáticas com status, retry, prioridade e histórico.
+    </p>
+  </div>
+
+  <div class="task-actions">
+    <form method="POST" action="/jobs/seed-revenue-cycle">
+      <button type="submit">Enfileirar Ciclo Revenue</button>
+    </form>
+
+    <form method="POST" action="/jobs/run-next">
+      <button type="submit">Rodar Próximo</button>
+    </form>
+
+    <form method="POST" action="/jobs/run-batch">
+      <button type="submit">Rodar Lote</button>
+    </form>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Total</span>
+    <strong><%= @jobs.count %></strong>
+  </div>
+
+  <div>
+    <span>Queued</span>
+    <strong><%= @jobs.count { |j| j["status"] == "queued" } %></strong>
+  </div>
+
+  <div>
+    <span>Running</span>
+    <strong><%= @jobs.count { |j| j["status"] == "running" } %></strong>
+  </div>
+
+  <div>
+    <span>Failed</span>
+    <strong><%= @jobs.count { |j| j["status"] == "failed" } %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Criar Job Manual</h2>
+  </div>
+
+  <div class="task-actions">
+    <% ["force_rescan", "concierge_autopilot", "channel_dispatch", "observability_scan", "validation_run", "backup_run", "self_repair"].each do |type| %>
+      <form method="POST" action="/jobs/enqueue/<%= type %>">
+        <button type="submit"><%= type %></button>
+      </form>
+    <% end %>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Jobs</h2>
+  </div>
+
+  <% if @jobs.empty? %>
+    <div class="empty-state">Nenhum job criado.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tipo</th>
+            <th>Status</th>
+            <th>Prioridade</th>
+            <th>Tentativas</th>
+            <th>Run at</th>
+            <th>Erro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @jobs.each do |job| %>
+            <tr>
+              <td><%= job["id"] %></td>
+              <td><%= job["job_type"] %></td>
+              <td><%= job["status"] %></td>
+              <td><%= job["priority"] %></td>
+              <td><%= job["attempts"] %>/<%= job["max_attempts"] %></td>
+              <td><%= job["run_at"] %></td>
+              <td><%= job["last_error"] || "-" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Eventos dos Jobs</h2>
+  </div>
+
+  <% if @events.empty? %>
+    <div class="empty-state">Nenhum evento.</div>
+  <% else %>
+    <div class="timeline">
+      <% @events.each do |event| %>
+        <div class="timeline-item">
+          <small>#<%= event["id"] %> · Job <%= event["job_id"] %> · <%= event["event_type"] %> · <%= event["created_at"] %></small>
+          <strong><%= event["title"] %></strong>
+          <p><%= event["detail"] %></p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
