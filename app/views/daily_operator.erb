@@ -45,7 +45,8 @@
 
       <p class="muted mt-2"><%= latest_loop["summary"] %></p>
 
-      <% if loop[:events] && loop[:events].any? %>
+      <% loop_events = (loop[:events] || loop["events"] || []) rescue [] %>
+      <% if loop_events.any? %>
         <table>
           <thead>
             <tr>
@@ -55,7 +56,7 @@
             </tr>
           </thead>
           <tbody>
-            <% loop[:events].each do |event| %>
+            <% loop_events.each do |event| %>
               <tr>
                 <td><%= event["step_title"] || event["step_key"] %></td>
                 <td><%= event["status"] %></td>
