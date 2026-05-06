@@ -36,7 +36,8 @@ heartbeat = OpsHeartbeat.new(DB)
 
 if ARGV.include?("--once")
   heartbeat.beat(component: "job_worker", status: "ok", detail: "once_start")
-  result = runner.run_next
+  result = runner.schedule_autopilot_daily_loop_if_due
+  runner.run_next
   heartbeat.beat(component: "job_worker", status: "ok", detail: "once_done: #{result.inspect}")
   puts "[#{Time.now.iso8601}] JOB_WORKER_ONCE result=#{result.inspect}"
   exit 0

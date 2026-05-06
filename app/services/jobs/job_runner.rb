@@ -52,6 +52,52 @@ class JobRunner
     true
   end
 
+
+  def schedule_autopilot_daily_loop_if_due(interval_minutes: nil)
+    interval_minutes ||= ENV.fetch("AUTOPILOT_DAILY_LOOP_INTERVAL_MINUTES", "30").to_i
+    interval_seconds = interval_minutes * 60
+
+    existing = @db.get_first_row(
+      "SELECT * FROM jobs WHERE job_type = ? AND status IN ('queued', 'running') LIMIT 1",
+      ["autopilot_daily_loop"]
+    )
+
+    return { status: "skipped", reason: "already_queued_or_running", job_id: existing["id"] } if existing
+
+    latest = @db.get_first_row(
+      "SELECT * FROM autopilot_daily_loop_runs ORDER BY id DESC LIMIT 1"
+    ) rescue nil
+
+    if latest && latest["finished_at"]
+      last_time = Time.parse(latest["finished_at"].to_s) rescue nil
+
+      if last_time
+        age_seconds = Time.now.utc - last_time
+
+        if age_seconds < interval_seconds
+          return {
+            status: "skipped",
+            reason: "recent_run",
+            age_seconds: age_seconds.to_i,
+            interval_seconds: interval_seconds
+          }
+        end
+      end
+    end
+
+    job = @queue.enqueue(
+      job_type: "autopilot_daily_loop",
+      payload: { source: "scheduler" },
+      priority: 90
+    )
+
+    {
+      status: "queued",
+      job_id: job["id"],
+      interval_minutes: interval_minutes
+    }
+  end
+
   private
 
   def perform(job)
