@@ -1,0 +1,212 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Solo Remote Work</p>
+    <h2>Daily Operator Dashboard</h2>
+    <p>
+      Mesa de trabalho diária: operação, dinheiro, respostas, validação e próxima melhor ação.
+    </p>
+  </div>
+
+  <div class="task-actions">
+    <form method="POST" action="/command-center/run-cycle">
+      <button type="submit" class="pipeline-rescan-btn">Rodar ciclo do dia</button>
+    </form>
+
+    <a class="pipeline-rescan-btn" href="/command-center.json">JSON</a>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Receita hoje</span>
+    <strong>R$ <%= "%.2f" % @snapshot[:money][:revenue_today] %></strong>
+  </div>
+
+  <div>
+    <span>Receita total</span>
+    <strong>R$ <%= "%.2f" % @snapshot[:money][:revenue_paid] %></strong>
+  </div>
+
+  <div>
+    <span>Pendentes</span>
+    <strong>R$ <%= "%.2f" % @snapshot[:money][:revenue_pending] %></strong>
+  </div>
+
+  <div>
+    <span>Ticket médio</span>
+    <strong>R$ <%= "%.2f" % @snapshot[:money][:average_ticket] %></strong>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Banco</span>
+    <strong><%= @snapshot[:system][:database_ok] ? "OK" : "FAIL" %></strong>
+  </div>
+
+  <div>
+    <span>Jobs falhados</span>
+    <strong><%= @snapshot[:jobs][:failed] %></strong>
+  </div>
+
+  <div>
+    <span>Jobs travados</span>
+    <strong><%= @snapshot[:jobs][:stuck] %></strong>
+  </div>
+
+  <div>
+    <span>Alertas</span>
+    <strong><%= @snapshot[:system][:alerts_count] %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Próxima melhor ação</h2>
+      <p class="panel-subtitle">O que você deve fazer agora para mover a operação.</p>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <small>next action</small>
+      <strong><%= @snapshot[:next_action][:title] %></strong>
+      <p><%= @snapshot[:next_action][:detail] %></p>
+      <a href="<%= @snapshot[:next_action][:link] %>">Abrir</a>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Checklist diário</h2>
+  </div>
+
+  <div class="timeline">
+    <% @snapshot[:checklist].each do |item| %>
+      <div class="timeline-item">
+        <small><%= item[:done] ? "ok" : "atenção" %></small>
+        <strong><%= item[:done] ? "✅" : "⚠️" %> <%= item[:label] %></strong>
+      </div>
+    <% end %>
+  </div>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Respostas recentes</h2>
+    </div>
+
+    <% if @snapshot[:responses][:latest].empty? %>
+      <div class="empty-state">Nenhuma resposta recente.</div>
+    <% else %>
+      <div class="timeline">
+        <% @snapshot[:responses][:latest].first(6).each do |r| %>
+          <div class="timeline-item">
+            <small>#<%= r["id"] %> · <%= r["response_status"] || "-" %></small>
+            <strong><%= r["body"] || r["raw_body"] || "Resposta recebida" %></strong>
+            <p>Deal: <%= r["deal_id"] || "-" %> · Processado: <%= r["processed"] %></p>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Pagamentos pendentes</h2>
+    </div>
+
+    <% if @snapshot[:payments][:pending].empty? %>
+      <div class="empty-state">Nenhum pagamento pendente.</div>
+    <% else %>
+      <div class="timeline">
+        <% @snapshot[:payments][:pending].first(6).each do |p| %>
+          <div class="timeline-item">
+            <small>payment #<%= p["id"] %></small>
+            <strong>R$ <%= "%.2f" % (p["amount"] || 0).to_f %></strong>
+            <p>Deal: <%= p["deal_id"] %> · <%= p["status"] %></p>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </article>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Oportunidades recentes</h2>
+    </div>
+
+    <% if @snapshot[:opportunities][:latest].empty? %>
+      <div class="empty-state">Nenhuma oportunidade recente.</div>
+    <% else %>
+      <div class="timeline">
+        <% @snapshot[:opportunities][:latest].first(8).each do |task| %>
+          <div class="timeline-item">
+            <small>#<%= task["id"] %> · <%= task["status"] %> · <%= task["quality_status"] || "-" %></small>
+            <strong><%= task["title"] %></strong>
+            <p><%= task["url"] %></p>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Validação / Sandbox</h2>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <small>validated</small>
+        <strong><%= @snapshot[:deliveries][:validated_count] %> entregas validadas recentes</strong>
+      </div>
+
+      <div class="timeline-item">
+        <small>manual_review</small>
+        <strong><%= @snapshot[:deliveries][:manual_review_count] %> entregas em revisão recente</strong>
+      </div>
+
+      <div class="timeline-item">
+        <small>sandbox passed</small>
+        <strong><%= @snapshot[:deliveries][:sandbox_passed_count] %> sandbox passed recentes</strong>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Jobs recentes</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tipo</th>
+          <th>Status</th>
+          <th>Tentativas</th>
+          <th>Erro</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @snapshot[:jobs][:latest_jobs].first(10).each do |job| %>
+          <tr>
+            <td><%= job["id"] %></td>
+            <td><%= job["job_type"] %></td>
+            <td><%= job["status"] %></td>
+            <td><%= job["attempts"] %>/<%= job["max_attempts"] %></td>
+            <td><%= job["last_error"] || "-" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
