@@ -58,7 +58,10 @@
           <p>
             Stack: <%= run["stack_detected"] || "unknown" %><br>
             Workspace: <%= run["workspace_path"] || "-" %><br>
-            Evidence: <%= run["evidence_path"] || "-" %>
+            Evidence: <%= run["evidence_path"] || "-" %><br>
+            Repo: <%= run["repo_url"] || "-" %><br>
+            Repo import: <%= run["repo_import_status"] || "-" %><br>
+            Workspace size: <%= run["workspace_size_kb"] || 0 %> KB
           </p>
 
           <% if run["error"] && !run["error"].empty? %>

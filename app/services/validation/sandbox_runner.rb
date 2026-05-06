@@ -10,6 +10,8 @@ class SandboxRunner
   EVIDENCE_ROOT = File.join(ROOT, "storage", "exports", "validation_sandbox")
 
   TIMEOUT_SECONDS = 20
+  CLONE_TIMEOUT_SECONDS = 30
+  MAX_WORKSPACE_KB = 25_000
 
   ALLOWLIST = {
     "ruby_syntax_app" => {
@@ -59,6 +61,7 @@ class SandboxRunner
 
     stack = detect_stack(delivery, task, latest_validation)
     workspace = prepare_workspace(delivery, task)
+    stack = detect_stack_from_workspace(workspace, stack)
     command_spec = choose_command(stack, workspace)
 
     started = Time.now.iso8601
@@ -71,6 +74,8 @@ class SandboxRunner
       command: command_spec ? command_spec[:label] : "none",
       started: started
     )
+
+    update_repo_import(run_id, workspace, task, delivery)
 
     unless command_spec
       finish_run(
@@ -172,6 +177,16 @@ class SandboxRunner
     "unknown"
   end
 
+  def detect_stack_from_workspace(workspace, fallback)
+    search_root = File.exist?(File.join(workspace, "repo")) ? File.join(workspace, "repo") : workspace
+
+    return "javascript" if File.exist?(File.join(search_root, "package.json"))
+    return "ruby" if File.exist?(File.join(search_root, "Gemfile")) || File.exist?(File.join(search_root, "app.rb"))
+    return "python" if File.exist?(File.join(search_root, "requirements.txt")) || Dir[File.join(search_root, "**", "*.py")].any?
+
+    fallback
+  end
+
   def prepare_workspace(delivery, task)
     id = "delivery-#{delivery["id"]}-#{SecureRandom.hex(4)}"
     workspace = File.join(SANDBOX_ROOT, id)
@@ -188,29 +203,138 @@ class SandboxRunner
 
     File.write(File.join(workspace, "README_DELIVERY.txt"), content)
 
-    # Sandbox v1 não clona repo externo. Apenas cria workspace isolado e roda checks se arquivos existirem.
+    repo_url = extract_repo_url(task, content)
+
+    if repo_url
+      import_repo(repo_url, workspace)
+    end
+
     workspace
   end
 
+  def extract_repo_url(task, content)
+    text = [
+      task && task["url"],
+      task && task["source_url"],
+      task && task["repository_url"],
+      task && task["title"],
+      content
+    ].compact.join(" ")
+
+    match = text.match(%r{https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+})
+    return nil unless match
+
+    match[0].sub(/\.git\z/, "")
+  end
+
+  def safe_github_url?(url)
+    return false unless url
+    return false unless url.start_with?("https://github.com/")
+    return false if url.include?("..")
+    return false if url.include?("@")
+    return false if url.include?(";")
+    return false if url.include?("|")
+    return false if url.include?("&")
+
+    true
+  end
+
+  def import_repo(repo_url, workspace)
+    raise "Repo URL não permitida: #{repo_url}" unless safe_github_url?(repo_url)
+
+    repo_dir = File.join(workspace, "repo")
+
+    Timeout.timeout(CLONE_TIMEOUT_SECONDS) do
+      _stdout, stderr, status = Open3.capture3(
+        {},
+        "git",
+        "clone",
+        "--depth",
+        "1",
+        repo_url,
+        repo_dir,
+        chdir: workspace
+      )
+
+      unless status.success?
+        raise "git clone failed: #{stderr.to_s[0, 1000]}"
+      end
+    end
+
+    size = workspace_size_kb(workspace)
+
+    if size > MAX_WORKSPACE_KB
+      FileUtils.rm_rf(repo_dir)
+      raise "workspace too large: #{size}KB > #{MAX_WORKSPACE_KB}KB"
+    end
+
+    repo_dir
+  rescue Timeout::Error
+    raise "git clone timeout after #{CLONE_TIMEOUT_SECONDS}s"
+  end
+
+  def workspace_size_kb(path)
+    total = 0
+
+    Dir[File.join(path, "**", "*"), File::FNM_DOTMATCH].each do |file|
+      next if File.directory?(file)
+      total += File.size(file) rescue 0
+    end
+
+    (total / 1024.0).ceil
+  end
+
+
   def choose_command(stack, workspace)
+    search_root = File.exist?(File.join(workspace, "repo")) ? File.join(workspace, "repo") : workspace
+
     case stack
     when "ruby"
-      if File.exist?(File.join(workspace, "app.rb"))
-        return { label: "ruby_syntax_app", command: ALLOWLIST["ruby_syntax_app"][:command] }
+      app_rb = File.join(search_root, "app.rb")
+
+      if File.exist?(app_rb)
+        return {
+          label: "ruby_syntax_app",
+          command: ["ruby", "-c", app_rb],
+          chdir: search_root
+        }
       end
+
+      rb = Dir[File.join(search_root, "**", "*.rb")].first
+      if rb
+        return {
+          label: "ruby_syntax_file",
+          command: ["ruby", "-c", rb],
+          chdir: search_root
+        }
+      end
+
     when "javascript"
-      if File.exist?(File.join(workspace, "package.json"))
-        return { label: "npm_build", command: ALLOWLIST["npm_build"][:command] }
+      pkg = File.join(search_root, "package.json")
+
+      if File.exist?(pkg)
+        return {
+          label: "npm_build",
+          command: ["npm", "run", "build"],
+          chdir: search_root
+        }
       end
+
     when "python"
-      py = Dir[File.join(workspace, "**", "*.py")].first
+      py = Dir[File.join(search_root, "**", "*.py")].first
+
       if py
-        return { label: "python_compile", command: ALLOWLIST["python_compile"][:command] + [py] }
+        return {
+          label: "python_compile",
+          command: ["python3", "-m", "py_compile", py],
+          chdir: search_root
+        }
       end
     end
 
     nil
   end
+
 
   def execute_command(command_spec, workspace)
     stdout = ""
@@ -222,7 +346,7 @@ class SandboxRunner
       stdout, stderr, status = Open3.capture3(
         {},
         *command_spec[:command],
-        chdir: workspace
+        chdir: command_spec[:chdir] || workspace
       )
       status_code = status.exitstatus
     end
@@ -278,6 +402,44 @@ class SandboxRunner
     )
 
     @db.last_insert_row_id
+  end
+
+  def update_repo_import(run_id, workspace, task, delivery)
+    content = [
+      delivery["title"],
+      delivery["content"],
+      delivery["body"],
+      delivery["result"],
+      delivery["notes"]
+    ].compact.join("\n\n")
+
+    repo_url = extract_repo_url(task, content)
+    size = workspace_size_kb(workspace)
+
+    import_status =
+      if repo_url && File.exist?(File.join(workspace, "repo"))
+        "imported"
+      elsif repo_url
+        "not_imported"
+      else
+        "no_repo"
+      end
+
+    @db.execute(
+      <<~SQL,
+        UPDATE validation_sandbox_runs
+        SET repo_url = ?,
+            repo_import_status = ?,
+            workspace_size_kb = ?
+        WHERE id = ?
+      SQL
+      [repo_url, import_status, size, run_id]
+    )
+  rescue => e
+    @db.execute(
+      "UPDATE validation_sandbox_runs SET repo_import_status = ?, repo_import_error = ? WHERE id = ?",
+      ["failed", "#{e.class}: #{e.message}", run_id]
+    )
   end
 
   def finish_run(run_id:, status:, exit_status:, stdout:, stderr:, error:, workspace:, evidence_path: nil)
