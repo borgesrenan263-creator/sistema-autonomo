@@ -1,0 +1,175 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Revenue Autopilot</p>
+    <h2>Follow-up & Payment Recovery</h2>
+    <p>
+      Detecta dinheiro parado, cria follow-ups e move oportunidades sem você precisar lembrar.
+    </p>
+  </div>
+
+  <div class="task-actions">
+    <form method="POST" action="/followups/autopilot/scan">
+      <button type="submit" class="pipeline-rescan-btn">Escanear</button>
+    </form>
+
+    <form method="POST" action="/followups/autopilot/run-due">
+      <button type="submit" class="pipeline-rescan-btn">Rodar vencidos</button>
+    </form>
+
+    <a class="pipeline-rescan-btn" href="/followups/autopilot.json">JSON</a>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Dinheiro parado</span>
+    <strong>R$ <%= "%.2f" % @dashboard[:money_at_risk][:total].to_f %></strong>
+  </div>
+
+  <div>
+    <span>Pagamentos pendentes</span>
+    <strong>R$ <%= "%.2f" % @dashboard[:money_at_risk][:pending_payments].to_f %></strong>
+  </div>
+
+  <div>
+    <span>Pipeline aberto</span>
+    <strong>R$ <%= "%.2f" % @dashboard[:money_at_risk][:proposal_pipeline].to_f %></strong>
+  </div>
+
+  <div>
+    <span>Follow-ups pendentes</span>
+    <strong><%= @dashboard[:counts][:pending] || 0 %></strong>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Total</span>
+    <strong><%= @dashboard[:counts][:total] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Queued</span>
+    <strong><%= @dashboard[:counts][:queued] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Sent</span>
+    <strong><%= @dashboard[:counts][:sent] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Done</span>
+    <strong><%= @dashboard[:counts][:done] || 0 %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Follow-ups ativos</h2>
+  </div>
+
+  <% if @dashboard[:pending_followups].empty? %>
+    <div class="empty-state">Nenhum follow-up ativo.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Entidade</th>
+            <th>Tipo</th>
+            <th>Status</th>
+            <th>Prioridade</th>
+            <th>Tentativas</th>
+            <th>Mensagem</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @dashboard[:pending_followups].each do |f| %>
+            <tr>
+              <td><%= f["id"] %></td>
+              <td><%= f["entity_type"] %>#<%= f["entity_id"] %></td>
+              <td><%= f["followup_type"] %></td>
+              <td><%= f["status"] %></td>
+              <td><%= f["priority"] %></td>
+              <td><%= f["attempts"] %>/<%= f["max_attempts"] %></td>
+              <td><%= f["message"].to_s[0, 160] %></td>
+              <td>
+                <form method="POST" action="/followups/autopilot/<%= f["id"] %>/process">
+                  <button type="submit">Processar</button>
+                </form>
+                <form method="POST" action="/followups/autopilot/<%= f["id"] %>/done">
+                  <button type="submit">Done</button>
+                </form>
+                <form method="POST" action="/followups/autopilot/<%= f["id"] %>/lost">
+                  <button type="submit">Lost</button>
+                </form>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Candidatos: deals</h2>
+    </div>
+
+    <div class="timeline">
+      <% @dashboard[:candidates][:proposal_deals].first(8).each do |d| %>
+        <div class="timeline-item">
+          <small>deal #<%= d["id"] %> · <%= d["status"] %></small>
+          <strong>R$ <%= d["value"] %></strong>
+          <p><%= d["next_action"] %></p>
+        </div>
+      <% end %>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Candidatos: pagamentos</h2>
+    </div>
+
+    <div class="timeline">
+      <% @dashboard[:candidates][:pending_payments].first(8).each do |p| %>
+        <div class="timeline-item">
+          <small>payment #<%= p["id"] %> · deal #<%= p["deal_id"] %></small>
+          <strong>R$ <%= p["amount"] %> · <%= p["status"] %></strong>
+          <p><%= p["reference"] %></p>
+        </div>
+      <% end %>
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Eventos recentes</h2>
+  </div>
+
+  <% if @dashboard[:latest_events].empty? %>
+    <div class="empty-state">Nenhum evento registrado.</div>
+  <% else %>
+    <div class="timeline">
+      <% @dashboard[:latest_events].each do |event| %>
+        <div class="timeline-item">
+          <small>
+            followup #<%= event["followup_task_id"] %>
+            · <%= event["entity_type"] %>#<%= event["entity_id"] %>
+            · <%= event["event_type"] %>
+          </small>
+          <strong><%= event["title"] %></strong>
+          <p><%= event["detail"] %></p>
+          <p><%= event["created_at"] %></p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
