@@ -1,0 +1,71 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Validation Sandbox</p>
+    <h2>Sandbox Executável Seguro</h2>
+    <p>
+      Executa apenas comandos em allowlist, com timeout curto, diretório isolado e evidência.
+    </p>
+  </div>
+
+  <form method="POST" action="/validation/sandbox/run">
+    <button type="submit" class="pipeline-rescan-btn">Rodar Sandbox Pendentes</button>
+  </form>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Runs</span>
+    <strong><%= @runs.count %></strong>
+  </div>
+
+  <div>
+    <span>Passed</span>
+    <strong><%= @runs.count { |r| r["status"] == "passed" } %></strong>
+  </div>
+
+  <div>
+    <span>Failed</span>
+    <strong><%= @runs.count { |r| r["status"] == "failed" } %></strong>
+  </div>
+
+  <div>
+    <span>Review</span>
+    <strong><%= @runs.count { |r| r["status"] == "manual_review" } %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Sandbox Runs</h2>
+  </div>
+
+  <% if @runs.empty? %>
+    <div class="empty-state">Nenhuma execução de sandbox ainda.</div>
+  <% else %>
+    <div class="timeline">
+      <% @runs.each do |run| %>
+        <div class="timeline-item">
+          <small>
+            #<%= run["id"] %>
+            · delivery <%= run["delivery_id"] || "-" %>
+            · <%= run["status"] %>
+            · exit <%= run["exit_status"] || "-" %>
+            · <%= run["started_at"] %>
+          </small>
+
+          <strong><%= run["command"] || "sem comando" %></strong>
+
+          <p>
+            Stack: <%= run["stack_detected"] || "unknown" %><br>
+            Workspace: <%= run["workspace_path"] || "-" %><br>
+            Evidence: <%= run["evidence_path"] || "-" %>
+          </p>
+
+          <% if run["error"] && !run["error"].empty? %>
+            <p>Erro: <%= run["error"] %></p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
