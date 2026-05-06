@@ -38,3 +38,13 @@ post "/sales/policy/run" do
   AutonomousSalesPolicy.new(DB).run_once
   redirect "/sales/policy"
 end
+
+
+post "/sales/policy/execute" do
+  require_relative "../services/concierge/sales_policy_decision_executor"
+
+  SalesPolicyDecisionExecutor.new(DB).run_batch(limit: 20)
+
+  redirect "/sales/policy"
+end
+
