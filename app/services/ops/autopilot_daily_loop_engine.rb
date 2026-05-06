@@ -13,6 +13,7 @@ class AutopilotDailyLoopEngine
     ["followup_run_due", "Processar follow-ups vencidos"],
     ["concierge_executor", "Executar decisões do Concierge"],
     ["dispatch_autopilot", "Processar dispatch seguro"],
+    ["stale_deal_closer", "Fechar deals antigos sem resposta"],
     ["heartbeat", "Atualizar heartbeat operacional"]
   ].freeze
 
@@ -87,6 +88,8 @@ class AutopilotDailyLoopEngine
                call_concierge_executor
              when "dispatch_autopilot"
                call_dispatch_autopilot
+             when "stale_deal_closer"
+               call_stale_deal_closer
              when "heartbeat"
                update_heartbeat
              else
@@ -139,6 +142,19 @@ class AutopilotDailyLoopEngine
     result = call_first_available(engine, [:run, :run!, :run_batch, :process_queue])
 
     "Dispatch autopilot executado: #{safe_inspect(result)}"
+  end
+
+
+  def call_stale_deal_closer
+    return "StaleDealCloser não encontrado" unless defined?(StaleDealCloser)
+
+    days = ENV.fetch("STALE_DEAL_DAYS", "7").to_i
+    days = 7 if days <= 0
+
+    engine = build_engine(StaleDealCloser)
+    result = engine.run_once(days: days, limit: 30)
+
+    "Stale deal closer executado: #{safe_inspect(result)}"
   end
 
   def update_heartbeat
