@@ -6,9 +6,15 @@
       <p class="muted">Ciclo único: follow-up, concierge, dispatch e heartbeat.</p>
     </div>
 
-    <form method="post" action="/autopilot/daily-loop/run">
-      <button class="btn-primary" type="submit">Rodar ciclo agora</button>
-    </form>
+    <div style="display:flex; gap: 10px; flex-wrap: wrap;">
+      <form method="post" action="/autopilot/daily-loop/run">
+        <button class="btn-primary" type="submit">Rodar ciclo agora</button>
+      </form>
+
+      <form method="post" action="/autopilot/daily-loop/enqueue">
+        <button class="btn-secondary" type="submit">Enfileirar no worker</button>
+      </form>
+    </div>
   </div>
 
   <% latest = @snapshot[:latest_run] %>

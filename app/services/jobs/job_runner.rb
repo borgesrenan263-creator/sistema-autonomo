@@ -2,6 +2,7 @@ require "json"
 require "net/http"
 require "uri"
 require "time"
+require_relative "../ops/autopilot_daily_loop_engine"
 
 class JobRunner
   def initialize(db)
@@ -64,6 +65,10 @@ class JobRunner
     when "concierge_autopilot"
       ConciergeAutopilot.new(@db).run_once
       "concierge_autopilot done"
+
+    when "autopilot_daily_loop"
+      AutopilotDailyLoopEngine.new(@db).run!(trigger_source: "job_worker")
+      "autopilot_daily_loop done"
 
     when "channel_dispatch"
       ChannelDispatchEngine.new(@db).run_once
