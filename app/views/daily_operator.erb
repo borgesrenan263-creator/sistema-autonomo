@@ -7,9 +7,9 @@
     </p>
   </div>
 
-<% loop = (@snapshot[:autopilot_daily_loop] || @snapshot["autopilot_daily_loop"]) rescue nil %>
-<% if loop %>
-  <% latest_loop = (loop[:latest] || loop["latest"]) rescue nil %>
+<% loop = @daily_loop_snapshot || {} %>
+<% latest_loop = (loop[:latest_run] || loop["latest_run"] || loop[:latest] || loop["latest"]) rescue nil %>
+<% loop_events = (loop[:latest_events] || loop["latest_events"] || loop[:events] || loop["events"] || []) rescue [] %>
 
   <div class="card mt-4">
     <div class="card-header">
@@ -45,7 +45,6 @@
 
       <p class="muted mt-2"><%= latest_loop["summary"] %></p>
 
-      <% loop_events = (loop[:events] || loop["events"] || []) rescue [] %>
       <% if loop_events.any? %>
         <table>
           <thead>
@@ -56,7 +55,7 @@
             </tr>
           </thead>
           <tbody>
-            <% loop_events.each do |event| %>
+            <% loop_events.first(5).each do |event| %>
               <tr>
                 <td><%= event["step_title"] || event["step_key"] %></td>
                 <td><%= event["status"] %></td>
@@ -70,7 +69,6 @@
       <p class="muted">Nenhum Daily Loop executado ainda.</p>
     <% end %>
   </div>
-<% end %>
 
 
   <div class="task-actions">

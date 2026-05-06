@@ -1,6 +1,8 @@
+require_relative "../services/ops/autopilot_daily_loop_engine"
 get "/command-center" do
   @page = "command_center"
   @snapshot = DailyOperatorEngine.new(DB).snapshot
+  @daily_loop_snapshot = AutopilotDailyLoopEngine.new(DB).snapshot
 
   erb :daily_operator
 end
