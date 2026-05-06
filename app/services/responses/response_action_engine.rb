@@ -64,6 +64,25 @@ class ResponseActionEngine
     deal = event["deal_id"] ? one("SELECT * FROM deals WHERE id = ?", [event["deal_id"]]) : nil
     raise "Deal não encontrado para cobrança" unless deal
 
+    paid = one(
+      "SELECT * FROM payments WHERE deal_id = ? AND status = 'paid' ORDER BY id DESC LIMIT 1",
+      [deal["id"]]
+    )
+
+    if paid
+      update_event_action(event_id, "already_paid", "Deal ##{deal["id"]} já possui pagamento confirmado.")
+      record_action(event, "already_paid", "Cobrança não criada porque já existe payment paid ##{paid["id"]}.")
+
+      notify(
+        "payment_already_paid",
+        "Deal já pago",
+        "Deal ##{deal["id"]} já possui pagamento confirmado. Nenhuma cobrança nova foi criada.",
+        "/finance/metrics"
+      )
+
+      return paid
+    end
+
     existing = one(
       "SELECT * FROM payments WHERE deal_id = ? AND status = 'pending' ORDER BY id DESC LIMIT 1",
       [deal["id"]]
