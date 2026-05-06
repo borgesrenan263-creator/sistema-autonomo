@@ -7,8 +7,8 @@
     </p>
   </div>
 
-<% if @snapshot && @snapshot[:autopilot_daily_loop] %>
-  <% loop = @snapshot[:autopilot_daily_loop] %>
+<% loop = (@snapshot[:autopilot_daily_loop] || @snapshot["autopilot_daily_loop"]) rescue nil %>
+<% if loop %>
   <% latest_loop = loop[:latest] %>
 
   <div class="card mt-4">

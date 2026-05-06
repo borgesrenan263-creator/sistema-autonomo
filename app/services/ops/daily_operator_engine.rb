@@ -23,6 +23,7 @@ class DailyOperatorEngine
       deliveries: deliveries_summary,
       jobs: jobs_summary(monitoring),
       monitoring: monitoring,
+      autopilot_daily_loop: autopilot_daily_loop_snapshot,
       next_action: next_action(financial, monitoring),
       checklist: checklist(financial, monitoring)
     }
