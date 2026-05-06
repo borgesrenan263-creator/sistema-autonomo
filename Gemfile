@@ -7,3 +7,5 @@ gem "rackup"
 
 # PostgreSQL for production deploy
 gem "pg"
+gem "csv"
+gem "sqlite3"
