@@ -141,12 +141,6 @@ class DispatchAutopilotEngine
       return { status: "blocked", reason: "outside_send_window" }
     end
 
-    if daily_limit_reached?
-      update_message(message["id"], "queued", "limite diário atingido")
-      record_event(run_id, message["id"], nil, "queued", "blocked", "limite diário atingido")
-      return { status: "blocked", reason: "daily_limit_reached" }
-    end
-
     recipient = resolve_recipient(message)
 
     if recipient.to_s.strip.empty?
@@ -157,6 +151,12 @@ class DispatchAutopilotEngine
     else
       update_message(message["id"], "recipient_resolved", "Destinatário resolvido: #{recipient}")
       record_event(run_id, message["id"], nil, "recipient_resolved", "ok", "Destinatário resolvido: #{recipient}")
+    end
+
+    if daily_limit_reached?
+      update_message(message["id"], "recipient_resolved_waiting_limit", "Destinatário resolvido: #{recipient}; limite diário atingido.")
+      record_event(run_id, message["id"], nil, "queued", "blocked", "Destinatário resolvido, mas limite diário atingido: #{recipient}")
+      return { status: "blocked", reason: "daily_limit_reached_after_recipient_resolved" }
     end
 
     unless dispatch_enabled?
