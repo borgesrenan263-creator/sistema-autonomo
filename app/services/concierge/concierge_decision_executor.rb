@@ -323,45 +323,36 @@ class ConciergeDecisionExecutor
 
     deal_id = @db.last_insert_row_id
 
+    outreach_created = false
+
     if table_exists?("outreach_messages")
       subject = "Diagnóstico objetivo sobre: #{task["title"]}"
       body = build_outreach_body(task, value)
+      body_column = first_existing_column("outreach_messages", ["body", "message", "content", "text", "message_body"])
 
-      @db.execute(
-        <<~SQL,
-          INSERT INTO outreach_messages
-          (
-            flow_id,
-            deal_id,
-            contact_id,
-            status,
-            policy_status,
-            subject,
-            body,
-            created_at,
-            updated_at
-          )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        SQL
-        [
-          nil,
-          deal_id,
-          contact_id,
-          "queued",
-          "approved",
-          subject,
-          body,
-          now,
-          now
-        ]
-      )
+      if body_column
+        columns = ["flow_id", "deal_id", "contact_id", "status", "policy_status", "subject", body_column, "created_at", "updated_at"]
+        values = [nil, deal_id, contact_id, "queued", "approved", subject, body, now, now]
+
+        existing_columns = columns.zip(values).select { |col, _| table_has_column?("outreach_messages", col) }
+        insert_columns = existing_columns.map(&:first)
+        insert_values = existing_columns.map(&:last)
+        placeholders = (["?"] * insert_columns.length).join(", ")
+
+        @db.execute(
+          "INSERT INTO outreach_messages (#{insert_columns.join(", ")}) VALUES (#{placeholders})",
+          insert_values
+        )
+
+        outreach_created = true
+      end
     end
 
     mark_execution(
       decision,
       "executed",
-      "Deal ##{deal_id} preparado para task ##{task["id"]}; abordagem enfileirada se tabela existir.",
-      "outreach_prepared"
+      "Deal ##{deal_id} preparado para task ##{task["id"]}; outreach_created=#{outreach_created}.",
+      outreach_created ? "outreach_prepared" : "deal_prepared_no_outreach_body_column"
     )
   end
 
@@ -490,6 +481,10 @@ class ConciergeDecisionExecutor
     all("SELECT * FROM concierge_execution_events ORDER BY id DESC LIMIT 100")
   rescue
     []
+  end
+
+  def first_existing_column(table, columns)
+    columns.find { |column| table_has_column?(table, column) }
   end
 
   def table_exists?(name)
