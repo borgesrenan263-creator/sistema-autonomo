@@ -53,7 +53,12 @@
         <a class="<%= @page == 'health' ? 'active' : '' %>" href="/health">Health</a>
         <a class="<%= @page == 'revenue_autopilot' ? 'active' : '' %>" href="/revenue-autopilot">Revenue Autopilot</a>
         <a class="<%= @page == 'jobs' ? 'active' : '' %>" href="/jobs">Jobs</a>
-      </nav>
+      
+<form method="POST" action="/logout" style="margin-top: 16px;">
+  <button type="submit" class="btn-link">Sair</button>
+</form>
+
+</nav>
 
       <div class="side-card">
         <small>Status do Sistema</small>

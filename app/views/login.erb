@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema Autônomo — Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(0,245,255,.18), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(124,58,237,.20), transparent 32%),
+        #020617;
+      color: white;
+    }
+
+    .login-card {
+      width: min(420px, calc(100vw - 32px));
+      padding: 32px;
+      border-radius: 28px;
+      background: rgba(15, 23, 42, .92);
+      border: 1px solid rgba(0,245,255,.22);
+      box-shadow: 0 30px 100px rgba(0,0,0,.45);
+    }
+
+    .eyebrow {
+      color: #00f5ff;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-size: .72rem;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 8px 0 8px;
+      font-size: 2rem;
+    }
+
+    p {
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      margin-top: 18px;
+      color: #cbd5e1;
+      font-weight: 700;
+      font-size: .9rem;
+    }
+
+    input {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.24);
+      background: rgba(2, 6, 23, .72);
+      color: white;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px 16px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #00f5ff, #7c3aed);
+      color: #020617;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .error {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(239,68,68,.12);
+      color: #fecaca;
+      border: 1px solid rgba(239,68,68,.3);
+    }
+  </style>
+</head>
+
+<body>
+  <main class="login-card">
+    <div class="eyebrow">Admin Access</div>
+    <h1>Sistema Autônomo</h1>
+    <p>Entre para acessar o painel operacional privado.</p>
+
+    <% if @error %>
+      <div class="error"><%= @error %></div>
+    <% end %>
+
+    <form method="POST" action="/login">
+      <label>Usuário</label>
+      <input name="username" autocomplete="username" required>
+
+      <label>Senha</label>
+      <input name="password" type="password" autocomplete="current-password" required>
+
+      <button type="submit">Entrar</button>
+    </form>
+  </main>
+</body>
+</html>

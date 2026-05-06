@@ -1,3 +1,4 @@
+require_relative "app/core/auth_guard"
 require "sinatra"
 require "json"
 require "time"
@@ -40,6 +41,16 @@ before do
 end
 
 # Modular routes
+enable :sessions
+set :session_secret, AuthGuard.session_secret
+set :protection, except: :session_hijacking
+
+helpers AuthGuard
+
+before do
+  require_admin! unless public_request?(request.path_info)
+end
+
 require_relative "app/routes/delivery_routes"
 require_relative "app/routes/commercial_routes"
 require_relative "app/routes/dashboard_routes"
@@ -62,6 +73,8 @@ require_relative "app/routes/revenue_autopilot_routes"
 require_relative "app/routes/validation_routes"
 require_relative "app/routes/job_routes"
 require_relative "app/routes/deploy_routes"
+require_relative "app/routes/auth_routes"
+
 
 
 
