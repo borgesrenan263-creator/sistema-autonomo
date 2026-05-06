@@ -1,0 +1,144 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Receita</p>
+    <h2>Money Recovery Center</h2>
+    <p>Central de dinheiro parado: propostas, cobranças, entregas, follow-ups e abordagens travadas.</p>
+  </div>
+
+  <div class="task-actions">
+    <a class="pipeline-rescan-btn" href="/money/recovery.json">JSON</a>
+    <a class="pipeline-rescan-btn" href="/command-center">Command Center</a>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Pipeline aberto</span>
+    <strong>R$ <%= "%.2f" % @money_recovery[:totals][:proposal_pipeline] %></strong>
+  </div>
+
+  <div>
+    <span>Pagamentos pendentes</span>
+    <strong>R$ <%= "%.2f" % @money_recovery[:totals][:pending_payments] %></strong>
+  </div>
+
+  <div>
+    <span>Dinheiro em risco</span>
+    <strong>R$ <%= "%.2f" % @money_recovery[:totals][:money_at_risk] %></strong>
+  </div>
+
+  <div>
+    <span>Entregas prontas</span>
+    <strong><%= @money_recovery[:totals][:ready_deliveries] %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Próxima melhor ação financeira</h2>
+      <p class="panel-subtitle">Prioridade automática baseada no dinheiro parado.</p>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <small>prioridade <%= @money_recovery[:next_action][:priority] %></small>
+      <strong><%= @money_recovery[:next_action][:title] %></strong>
+      <p><%= @money_recovery[:next_action][:detail] %></p>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Propostas e deals abertos</h2>
+      <p class="panel-subtitle">Valor parado antes de cobrança/fechamento.</p>
+    </div>
+  </div>
+
+  <% if @money_recovery[:proposal_deals].empty? %>
+    <p class="muted">Nenhuma proposta aberta.</p>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Task</th>
+          <th>Status</th>
+          <th>Valor</th>
+          <th>Próxima ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @money_recovery[:proposal_deals].each do |deal| %>
+          <tr>
+            <td><%= deal["id"] %></td>
+            <td><%= deal["task_id"] %></td>
+            <td><%= deal["status"] %></td>
+            <td>R$ <%= "%.2f" % deal["value"].to_f %></td>
+            <td><%= deal["next_action"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Pagamentos pendentes</h2>
+      <p class="panel-subtitle">Cobranças criadas e ainda não pagas.</p>
+    </div>
+  </div>
+
+  <% if @money_recovery[:pending_payments].empty? %>
+    <p class="muted">Nenhum pagamento pendente.</p>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Deal</th>
+          <th>Valor</th>
+          <th>Status</th>
+          <th>Provider</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @money_recovery[:pending_payments].each do |payment| %>
+          <tr>
+            <td><%= payment["id"] %></td>
+            <td><%= payment["deal_id"] %></td>
+            <td>R$ <%= "%.2f" % payment["amount"].to_f %></td>
+            <td><%= payment["status"] %></td>
+            <td><%= payment["provider"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Follow-ups e abordagens travadas</h2>
+      <p class="panel-subtitle">Itens que ainda precisam mover a receita.</p>
+    </div>
+  </div>
+
+  <div class="grid cards-grid">
+    <article class="card">
+      <span class="card-label">Follow-ups pendentes</span>
+      <strong><%= @money_recovery[:totals][:pending_followups] %></strong>
+    </article>
+
+    <article class="card">
+      <span class="card-label">Outreach travado</span>
+      <strong><%= @money_recovery[:totals][:stuck_outreach] %></strong>
+    </article>
+  </div>
+</section>
