@@ -1,4 +1,5 @@
 require "fileutils"
+require_relative "../config/env_guard"
 
 ROOT = File.expand_path("..", __dir__)
 

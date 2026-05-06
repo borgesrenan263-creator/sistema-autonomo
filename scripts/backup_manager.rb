@@ -2,10 +2,10 @@ require "fileutils"
 require "open3"
 require "time"
 
-ROOT = File.expand_path("..", __dir__)
+BACKUP_BACKUP_ROOT = File.expand_path("..", __dir__)
 BACKUP_DIR = "/root/backups"
-DB_PATH = File.join(ROOT, "data", "sistema_autonomo.sqlite3")
-LOG_PATH = File.join(ROOT, "storage", "logs", "backup_manager.log")
+BACKUP_BACKUP_DB_PATH = File.join(BACKUP_BACKUP_ROOT, "data", "sistema_autonomo.sqlite3")
+BACKUP_BACKUP_LOG_PATH = File.join(BACKUP_BACKUP_ROOT, "storage", "logs", "backup_manager.log")
 
 class BackupManager
   attr_reader :tar_path, :sql_path, :errors
@@ -20,7 +20,7 @@ class BackupManager
 
   def run
     FileUtils.mkdir_p(BACKUP_DIR)
-    FileUtils.mkdir_p(File.dirname(LOG_PATH))
+    FileUtils.mkdir_p(File.dirname(BACKUP_LOG_PATH))
 
     create_tar_backup
     create_sql_dump
@@ -55,8 +55,8 @@ class BackupManager
       "-czf",
       @tar_path,
       "-C",
-      File.dirname(ROOT),
-      File.basename(ROOT)
+      File.dirname(BACKUP_BACKUP_ROOT),
+      File.basename(BACKUP_BACKUP_ROOT)
     ]
 
     ok, output = run_cmd(cmd)
@@ -69,12 +69,12 @@ class BackupManager
   end
 
   def create_sql_dump
-    unless File.exist?(DB_PATH)
-      @errors << "DB_NOT_FOUND #{DB_PATH}"
+    unless File.exist?(BACKUP_DB_PATH)
+      @errors << "DB_NOT_FOUND #{BACKUP_DB_PATH}"
       return
     end
 
-    cmd = "sqlite3 #{shell_escape(DB_PATH)} .dump > #{shell_escape(@sql_path)}"
+    cmd = "sqlite3 #{shell_escape(BACKUP_DB_PATH)} .dump > #{shell_escape(@sql_path)}"
     stdout, stderr, status = Open3.capture3("bash", "-lc", cmd)
 
     if status.success?
@@ -94,13 +94,13 @@ class BackupManager
   end
 
   def log(message)
-    File.open(LOG_PATH, "a") do |f|
+    File.open(BACKUP_LOG_PATH, "a") do |f|
       f.puts "[#{Time.now.iso8601}] #{message}"
     end
   end
 
   def write_log
-    File.open(LOG_PATH, "a") do |f|
+    File.open(BACKUP_LOG_PATH, "a") do |f|
       f.puts "[#{Time.now.iso8601}] BACKUP_DONE tar=#{@tar_path} sql=#{@sql_path} errors=#{errors.count}"
       errors.each { |e| f.puts "[#{Time.now.iso8601}] ERROR #{e}" }
     end

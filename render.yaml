@@ -3,8 +3,8 @@ services:
     name: sistema-autonomo-web
     env: ruby
     plan: starter
-    buildCommand: bundle install && ruby scripts/production_setup.rb
-    startCommand: bundle exec ruby app.rb
+    buildCommand: bundle install
+    startCommand: bin/start
     envVars:
       - key: RACK_ENV
         value: production
@@ -19,8 +19,8 @@ services:
     name: sistema-autonomo-worker
     env: ruby
     plan: starter
-    buildCommand: bundle install && ruby scripts/production_setup.rb
-    startCommand: bundle exec ruby workers/job_worker.rb
+    buildCommand: bundle install
+    startCommand: bin/worker
     envVars:
       - key: RACK_ENV
         value: production

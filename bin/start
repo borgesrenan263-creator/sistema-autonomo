@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -e
+
+echo "Starting Sistema Autonomo Web..."
+ruby scripts/production_setup.rb
+bundle exec ruby app.rb

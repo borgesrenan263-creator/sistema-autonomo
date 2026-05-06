@@ -28,6 +28,7 @@ require_relative "app/services/outreach/manual_provider"
 require_relative "app/services/outreach/outreach_engine"
 
 require_relative "config/app_settings"
+require_relative "config/env_guard"
 
 
 before do
@@ -60,6 +61,7 @@ require_relative "app/routes/response_inbox_routes"
 require_relative "app/routes/revenue_autopilot_routes"
 require_relative "app/routes/validation_routes"
 require_relative "app/routes/job_routes"
+require_relative "app/routes/deploy_routes"
 
 
 

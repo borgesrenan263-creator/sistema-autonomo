@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -e
+
+echo "Starting Sistema Autonomo Job Worker..."
+ruby scripts/production_setup.rb
+bundle exec ruby workers/job_worker.rb
