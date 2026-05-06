@@ -119,7 +119,7 @@ class DispatchAutopilotEngine
   end
 
 
-  def recover_waiting_limit(limit: 10)
+  def recover_waiting_limit(limit: 10, ignore_daily_limit: false)
     candidates = @db.execute(
       <<~SQL,
         SELECT *
@@ -134,7 +134,21 @@ class DispatchAutopilotEngine
     ).map { |row| row.reject { |k, _| k.is_a?(Integer) } }
 
     candidates.map do |message|
-      process_one(message["id"])
+      ignore_daily_limit ? process_one_ignore_daily_limit(message["id"]) : process_one(message["id"])
+    end
+  end
+
+
+  def process_one_ignore_daily_limit(outreach_message_id)
+    original = ENV["CHANNEL_DAILY_LIMIT"]
+    ENV["CHANNEL_DAILY_LIMIT"] = "999999"
+
+    process_one(outreach_message_id)
+  ensure
+    if original.nil?
+      ENV.delete("CHANNEL_DAILY_LIMIT")
+    else
+      ENV["CHANNEL_DAILY_LIMIT"] = original
     end
   end
 

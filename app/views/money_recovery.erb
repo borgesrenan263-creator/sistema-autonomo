@@ -18,6 +18,11 @@
       <button type="submit" class="pipeline-rescan-btn">Recuperar limite diário</button>
     </form>
 
+    <form method="POST" action="/money/recovery/recover-daily-limit">
+      <input type="hidden" name="ignore_daily_limit" value="1">
+      <button type="submit" class="pipeline-rescan-btn">Forçar recuperação segura</button>
+    </form>
+
     <form method="POST" action="/money/recovery/run-daily-loop">
       <button type="submit" class="pipeline-rescan-btn">Rodar Daily Loop</button>
     </form>

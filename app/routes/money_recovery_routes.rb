@@ -42,7 +42,7 @@ end
 post "/money/recovery/recover-daily-limit" do
   require_relative "../services/channels/dispatch_autopilot_engine"
 
-  DispatchAutopilotEngine.new(DB).recover_waiting_limit(limit: 10)
+  DispatchAutopilotEngine.new(DB).recover_waiting_limit(limit: 10, ignore_daily_limit: params[:ignore_daily_limit].to_s == "1")
 
   redirect "/money/recovery"
 end
