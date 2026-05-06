@@ -154,6 +154,9 @@ class DispatchAutopilotEngine
       mark_message_dispatched(message["id"], "manual", "Sem destinatário; marcado para canal manual.")
       record_event(run_id, message["id"], dispatch["id"], "manual", "manual", "Sem destinatário; canal manual.")
       return { status: "manual", reason: "missing_recipient" }
+    else
+      update_message(message["id"], "recipient_resolved", "Destinatário resolvido: #{recipient}")
+      record_event(run_id, message["id"], nil, "recipient_resolved", "ok", "Destinatário resolvido: #{recipient}")
     end
 
     unless dispatch_enabled?
@@ -260,19 +263,154 @@ class DispatchAutopilotEngine
   end
 
   def resolve_recipient(message)
-    contact_id = message["contact_id"] if message.key?("contact_id")
-    deal_id = message["deal_id"] if message.key?("deal_id")
+    direct = resolve_direct_contact_email(message)
+    return direct if present?(direct)
 
-    contact = contact_id ? one("SELECT * FROM contacts WHERE id = ?", [contact_id]) : nil
+    from_deal = resolve_deal_contact_email(message)
+    return from_deal if present?(from_deal)
 
-    if !contact && deal_id && table_exists?("deals")
-      deal = one("SELECT * FROM deals WHERE id = ?", [deal_id])
-      contact = deal && deal["contact_id"] ? one("SELECT * FROM contacts WHERE id = ?", [deal["contact_id"]]) : nil
-    end
+    from_response = resolve_response_contact_email(message)
+    return from_response if present?(from_response)
 
-    contact && contact["email"]
+    from_task = resolve_task_contact_email(message)
+    return from_task if present?(from_task)
+
+    from_raw_json = resolve_raw_json_email(message)
+    return from_raw_json if present?(from_raw_json)
+
+    nil
   rescue
     nil
+  end
+
+  def resolve_direct_contact_email(message)
+    contact_id = message["contact_id"] if message.key?("contact_id")
+    return nil unless contact_id && table_exists?("contacts")
+
+    contact = one("SELECT * FROM contacts WHERE id = ?", [contact_id])
+    email_from_contact(contact)
+  end
+
+  def resolve_deal_contact_email(message)
+    deal_id = message["deal_id"] if message.key?("deal_id")
+    return nil unless deal_id && table_exists?("deals")
+
+    deal = one("SELECT * FROM deals WHERE id = ?", [deal_id])
+    return nil unless deal
+
+    if deal["contact_id"] && table_exists?("contacts")
+      contact = one("SELECT * FROM contacts WHERE id = ?", [deal["contact_id"]])
+      email = email_from_contact(contact)
+      return email if present?(email)
+    end
+
+    if deal["task_id"] && table_exists?("tasks")
+      task = one("SELECT * FROM tasks WHERE id = ?", [deal["task_id"]])
+      email = email_from_task(task)
+      return email if present?(email)
+    end
+
+    nil
+  end
+
+  def resolve_response_contact_email(message)
+    return nil unless table_exists?("response_inbox_events")
+
+    event = nil
+
+    if message["deal_id"]
+      event = one(
+        "SELECT * FROM response_inbox_events WHERE deal_id = ? ORDER BY id DESC LIMIT 1",
+        [message["deal_id"]]
+      )
+    end
+
+    if !event && message["contact_id"]
+      event = one(
+        "SELECT * FROM response_inbox_events WHERE contact_id = ? ORDER BY id DESC LIMIT 1",
+        [message["contact_id"]]
+      )
+    end
+
+    return nil unless event
+
+    if event["contact_id"] && table_exists?("contacts")
+      contact = one("SELECT * FROM contacts WHERE id = ?", [event["contact_id"]])
+      email = email_from_contact(contact)
+      return email if present?(email)
+    end
+
+    email = extract_email(event["sender"].to_s)
+    return email if present?(email)
+
+    email = extract_email(event["recipient"].to_s)
+    return email if present?(email)
+
+    email = extract_email(event["raw_body"].to_s)
+    return email if present?(email)
+
+    nil
+  end
+
+  def resolve_task_contact_email(message)
+    task_id = message["task_id"] if message.key?("task_id")
+
+    if !task_id && message["deal_id"] && table_exists?("deals")
+      deal = one("SELECT * FROM deals WHERE id = ?", [message["deal_id"]])
+      task_id = deal && deal["task_id"]
+    end
+
+    return nil unless task_id && table_exists?("tasks")
+
+    task = one("SELECT * FROM tasks WHERE id = ?", [task_id])
+    email_from_task(task)
+  end
+
+  def resolve_raw_json_email(message)
+    email = extract_email(message["message_body"].to_s)
+    return email if present?(email)
+
+    email = extract_email(message["subject"].to_s)
+    return email if present?(email)
+
+    nil
+  end
+
+  def email_from_contact(contact)
+    return nil unless contact
+
+    ["email", "mail", "recipient"].each do |column|
+      if contact.key?(column)
+        email = extract_email(contact[column].to_s)
+        return email if present?(email)
+      end
+    end
+
+    nil
+  end
+
+  def email_from_task(task)
+    return nil unless task
+
+    ["raw_json", "description", "result", "url", "title"].each do |column|
+      next unless task.key?(column)
+
+      email = extract_email(task[column].to_s)
+      return email if present?(email)
+    end
+
+    nil
+  end
+
+  def extract_email(text)
+    return nil if text.to_s.strip.empty?
+
+    match = text.to_s.match(/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i)
+    match && match[0]
+  end
+
+  def present?(value)
+    !value.nil? && value.to_s.strip != ""
   end
 
   def candidates
