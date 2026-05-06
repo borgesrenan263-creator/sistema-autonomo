@@ -1,0 +1,171 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Safe Dispatch</p>
+    <h2>Dispatch Autopilot</h2>
+    <p>
+      Envia ou prepara mensagens enfileiradas com limites, janela segura e anti-duplicidade.
+    </p>
+  </div>
+
+  <div class="task-actions">
+    <form method="POST" action="/dispatch/autopilot/run">
+      <button type="submit" class="pipeline-rescan-btn">Rodar dispatch seguro</button>
+    </form>
+
+    <a class="pipeline-rescan-btn" href="/dispatch/autopilot.json">JSON</a>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Candidatas</span>
+    <strong><%= @dashboard[:counts][:candidates] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Dispatches</span>
+    <strong><%= @dashboard[:counts][:dispatches] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Usado hoje</span>
+    <strong><%= @dashboard[:daily_usage][:used] %>/<%= @dashboard[:daily_usage][:limit] %></strong>
+  </div>
+
+  <div>
+    <span>Provider</span>
+    <strong><%= @dashboard[:config][:email_provider] %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Configuração segura</h2>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <small>dispatch_enabled</small>
+      <strong><%= @dashboard[:config][:dispatch_enabled] ? "true" : "false" %></strong>
+    </div>
+
+    <div class="timeline-item">
+      <small>janela</small>
+      <strong><%= @dashboard[:config][:send_window_start] %> até <%= @dashboard[:config][:send_window_end] %></strong>
+    </div>
+
+    <div class="timeline-item">
+      <small>limite diário restante</small>
+      <strong><%= @dashboard[:daily_usage][:remaining] %></strong>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Mensagens candidatas</h2>
+  </div>
+
+  <% if @dashboard[:candidates].empty? %>
+    <div class="empty-state">Nenhuma mensagem queued aprovada.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Deal</th>
+            <th>Status</th>
+            <th>Policy</th>
+            <th>Subject</th>
+            <th>Autopilot</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @dashboard[:candidates].each do |m| %>
+            <tr>
+              <td><%= m["id"] %></td>
+              <td><%= m["deal_id"] || "-" %></td>
+              <td><%= m["status"] %></td>
+              <td><%= m["policy_status"] %></td>
+              <td><%= m["subject"] %></td>
+              <td><%= m["dispatch_autopilot_status"] || "-" %></td>
+              <td>
+                <form method="POST" action="/dispatch/autopilot/<%= m["id"] %>/process">
+                  <button type="submit">Processar</button>
+                </form>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Eventos recentes</h2>
+  </div>
+
+  <% if @dashboard[:latest_events].empty? %>
+    <div class="empty-state">Nenhum evento de dispatch autopilot.</div>
+  <% else %>
+    <div class="timeline">
+      <% @dashboard[:latest_events].each do |event| %>
+        <div class="timeline-item">
+          <small>
+            run #<%= event["run_id"] %>
+            · message #<%= event["outreach_message_id"] %>
+            · dispatch #<%= event["dispatch_id"] || "-" %>
+          </small>
+          <strong><%= event["event_type"] %> / <%= event["status"] %></strong>
+          <p><%= event["reason"] %></p>
+          <p><%= event["created_at"] %></p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Runs recentes</h2>
+  </div>
+
+  <% if @dashboard[:latest_runs].empty? %>
+    <div class="empty-state">Nenhum run registrado.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Candidatas</th>
+            <th>Sent</th>
+            <th>Manual</th>
+            <th>Blocked</th>
+            <th>Failed</th>
+            <th>Resumo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @dashboard[:latest_runs].each do |run| %>
+            <tr>
+              <td><%= run["id"] %></td>
+              <td><%= run["status"] %></td>
+              <td><%= run["total_candidates"] %></td>
+              <td><%= run["sent_count"] %></td>
+              <td><%= run["manual_count"] %></td>
+              <td><%= run["blocked_count"] %></td>
+              <td><%= run["failed_count"] %></td>
+              <td><%= run["summary"] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
