@@ -1,0 +1,111 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Responses / Action Center</p>
+    <h2>Inbox Action Center</h2>
+    <p>
+      Transforme respostas interessadas em próximas ações: resolver, ignorar, criar cobrança ou avançar deal.
+    </p>
+  </div>
+
+  <a class="pipeline-rescan-btn" href="/responses/action-center.json">JSON</a>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Abertas</span>
+    <strong><%= @dashboard[:counts][:open] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Interessadas</span>
+    <strong><%= @dashboard[:counts][:interested] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Não processadas</span>
+    <strong><%= @dashboard[:counts][:unprocessed] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Inválidas</span>
+    <strong><%= @dashboard[:counts][:invalid] || 0 %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="task-actions">
+    <% ["open", "interested", "unprocessed", "invalid", "resolved", "ignored"].each do |filter| %>
+      <a class="pipeline-rescan-btn" href="/responses/action-center?filter=<%= filter %>"><%= filter %></a>
+    <% end %>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Respostas</h2>
+    <p class="panel-subtitle">Filtro atual: <%= @filter %></p>
+  </div>
+
+  <% if @dashboard[:events].empty? %>
+    <div class="empty-state">Nenhuma resposta para este filtro.</div>
+  <% else %>
+    <div class="timeline">
+      <% @dashboard[:events].each do |item| %>
+        <% event = item[:event] %>
+        <% deal = item[:deal] %>
+        <% task = item[:task] %>
+        <% contact = item[:contact] %>
+        <% payment = item[:payment] %>
+
+        <div class="timeline-item">
+          <small>
+            Response #<%= event["id"] %>
+            · status <%= event["response_status"] || "-" %>
+            · processed <%= event["processed"] %>
+            · action <%= event["action_status"] || "open" %>
+          </small>
+
+          <strong><%= event["body"] || event["raw_body"] || "Resposta recebida" %></strong>
+
+          <p>
+            Deal: <%= deal ? "##{deal["id"]} — #{deal["status"]} — R$ #{deal["value"]}" : "-" %><br>
+            Task: <%= task ? "##{task["id"]} — #{task["title"]}" : "-" %><br>
+            Contact: <%= contact ? "#{contact["name"] || contact["email"] || contact["handle"]}" : "-" %><br>
+            Payment: <%= payment ? "##{payment["id"]} — #{payment["status"]} — R$ #{payment["amount"]}" : "-" %>
+          </p>
+
+          <% if event["processing_error"] && !event["processing_error"].empty? %>
+            <p>Erro processamento: <%= event["processing_error"] %></p>
+          <% end %>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Mensagem sugerida</h3>
+            </div>
+            <p><%= item[:suggested_message] %></p>
+          </div>
+
+          <div class="task-actions">
+            <form method="POST" action="/responses/<%= event["id"] %>/mark-interested">
+              <button type="submit">Marcar interessado</button>
+            </form>
+
+            <form method="POST" action="/responses/<%= event["id"] %>/create-charge">
+              <button type="submit">Criar cobrança</button>
+            </form>
+
+            <form method="POST" action="/responses/<%= event["id"] %>/resolve">
+              <button type="submit">Marcar resolvida</button>
+            </form>
+
+            <form method="POST" action="/responses/<%= event["id"] %>/ignore">
+              <button type="submit">Ignorar</button>
+            </form>
+
+            <a href="/responses/<%= event["id"] %>/suggested-message">Copiar mensagem</a>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
