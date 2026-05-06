@@ -1,3 +1,2 @@
-web: bin/start
-worker: bin/worker
-revenue: bin/revenue
+web: bundle exec ruby app.rb
+worker: bundle exec ruby workers/job_worker.rb

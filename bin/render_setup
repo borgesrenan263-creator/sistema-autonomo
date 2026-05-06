@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+mkdir -p data storage/logs storage/exports storage/tmp
+
+bundle install
+
+if [ -f db/setup.rb ]; then
+  bundle exec ruby db/setup.rb
+fi
+
+if [ -f db/add_job_queue.rb ]; then
+  bundle exec ruby db/add_job_queue.rb
+fi
+
+if [ -f db/add_autopilot_daily_loop.rb ]; then
+  bundle exec ruby db/add_autopilot_daily_loop.rb
+fi
+
+echo "[render_setup] done"
