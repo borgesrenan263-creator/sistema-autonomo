@@ -276,7 +276,7 @@ class SandboxRunner
   def workspace_size_kb(path)
     total = 0
 
-    Dir[File.join(path, "**", "*"), File::FNM_DOTMATCH].each do |file|
+    Dir.glob(File.join(path, "**", "*"), File::FNM_DOTMATCH).each do |file|
       next if File.directory?(file)
       total += File.size(file) rescue 0
     end
