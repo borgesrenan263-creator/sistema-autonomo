@@ -65,7 +65,7 @@ require_relative "app/routes/job_routes"
 
 
 set :bind, "0.0.0.0"
-set :port, 4567
+set :port, ENV.fetch("PORT", 4567).to_i
 set :public_folder, File.expand_path("app/public", __dir__)
 set :views, File.expand_path("app/views", __dir__)
 

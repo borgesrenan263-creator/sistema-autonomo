@@ -1,20 +1,51 @@
+require "sequel"
 require "sqlite3"
-require "fileutils"
+
+begin
+  require "pg"
+rescue LoadError
+end
 
 module DatabaseConfig
-  ROOT_DIR = File.expand_path("..", __dir__)
-  DATA_DIR = File.join(ROOT_DIR, "data")
-  DB_PATH = File.join(DATA_DIR, "sistema_autonomo.sqlite3")
+  ROOT = File.expand_path("..", __dir__)
 
-  def self.ensure_data_dir!
-    FileUtils.mkdir_p(DATA_DIR)
+  def self.database_url
+    ENV["DATABASE_URL"].to_s.strip
+  end
+
+  def self.sqlite_path
+    File.join(ROOT, "data", "sistema_autonomo.sqlite3")
   end
 
   def self.connect
-    ensure_data_dir!
+    if database_url.empty?
+      connect_sqlite
+    else
+      connect_postgres
+    end
+  end
 
-    db = SQLite3::Database.new(DB_PATH)
-    db.results_as_hash = true
+  def self.connect_sqlite
+    FileUtils.mkdir_p(File.join(ROOT, "data")) if defined?(FileUtils)
+
+    db = Sequel.sqlite(sqlite_path)
+    db.extension(:pagination) rescue nil
     db
   end
+
+  def self.connect_postgres
+    db = Sequel.connect(database_url)
+    db.extension(:pagination) rescue nil
+    db
+  end
+
+  def self.adapter
+    database_url.empty? ? "sqlite" : "postgres"
+  end
+
+  def self.production?
+    ENV["RACK_ENV"].to_s == "production" || ENV["APP_ENV"].to_s == "production"
+  end
 end
+
+DB = DatabaseConfig.connect unless defined?(DB)
