@@ -1,0 +1,63 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Produção</p>
+    <h2>Production Readiness</h2>
+    <p>Checklist para rodar o Sistema Autônomo 24/7 com segurança.</p>
+  </div>
+
+  <div class="task-actions">
+    <a class="pipeline-rescan-btn" href="/ops/production-readiness.json">JSON</a>
+    <a class="pipeline-rescan-btn" href="/ops/queue">Fila Ops</a>
+    <a class="pipeline-rescan-btn" href="/command-center">Command Center</a>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Score</span>
+    <strong><%= @readiness[:score] %>/100</strong>
+  </div>
+
+  <div>
+    <span>Status</span>
+    <strong><%= @readiness[:status] %></strong>
+  </div>
+
+  <div>
+    <span>Blockers</span>
+    <strong><%= @readiness[:blockers].size %></strong>
+  </div>
+
+  <div>
+    <span>Warnings</span>
+    <strong><%= @readiness[:warnings].size %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Checklist de produção</h2>
+      <p class="panel-subtitle">O que precisa estar OK antes de escalar automação real.</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Item</th>
+        <th>Detalhe</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @readiness[:checks].each do |check| %>
+        <tr>
+          <td><%= check[:status] %></td>
+          <td><strong><%= check[:title] %></strong><br><small><%= check[:key] %></small></td>
+          <td><%= check[:detail] %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>
