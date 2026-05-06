@@ -145,10 +145,9 @@ class AutonomousSalesPolicy
           action_taken,
           reason,
           execution_status,
-          created_at,
-          updated_at
+          created_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       SQL
       [
         entity_type,
@@ -160,7 +159,6 @@ class AutonomousSalesPolicy
         action_taken,
         reason,
         "pending",
-        now,
         now
       ]
     )
