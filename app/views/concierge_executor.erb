@@ -1,0 +1,109 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Autonomous Concierge</p>
+    <h2>Decision Executor</h2>
+    <p>
+      Executa decisões autônomas seguras: cobranças, bloqueios, entregas liberáveis e preparação de abordagem.
+    </p>
+  </div>
+
+  <div class="task-actions">
+    <form method="POST" action="/concierge/executor/run">
+      <button type="submit" class="pipeline-rescan-btn">Executar pendentes</button>
+    </form>
+
+    <a class="pipeline-rescan-btn" href="/concierge/executor.json">JSON</a>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Pendentes</span>
+    <strong><%= @dashboard[:counts][:pending] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Executadas</span>
+    <strong><%= @dashboard[:counts][:executed] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Bloqueadas</span>
+    <strong><%= @dashboard[:counts][:blocked] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Falhas</span>
+    <strong><%= @dashboard[:counts][:failed] || 0 %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Decisões pendentes</h2>
+  </div>
+
+  <% if @dashboard[:pending_decisions].empty? %>
+    <div class="empty-state">Nenhuma decisão pendente para execução.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Entidade</th>
+            <th>Tipo</th>
+            <th>Decisão</th>
+            <th>Confiança</th>
+            <th>Risco</th>
+            <th>Motivo</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @dashboard[:pending_decisions].each do |d| %>
+            <tr>
+              <td><%= d["id"] %></td>
+              <td><%= d["entity_type"] %>#<%= d["entity_id"] %></td>
+              <td><%= d["decision_type"] %></td>
+              <td><%= d["decision"] %></td>
+              <td><%= d["confidence"] %></td>
+              <td><%= d["risk_level"] %></td>
+              <td><%= d["reason"] %></td>
+              <td>
+                <form method="POST" action="/concierge/executor/<%= d["id"] %>">
+                  <button type="submit">Executar</button>
+                </form>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Eventos de execução</h2>
+  </div>
+
+  <% if @dashboard[:latest_events].empty? %>
+    <div class="empty-state">Nenhuma execução registrada.</div>
+  <% else %>
+    <div class="timeline">
+      <% @dashboard[:latest_events].each do |event| %>
+        <div class="timeline-item">
+          <small>
+            decision #<%= event["decision_id"] %>
+            · <%= event["entity_type"] %>#<%= event["entity_id"] %>
+            · <%= event["execution_status"] %>
+          </small>
+          <strong><%= event["action_taken"] %></strong>
+          <p><%= event["result"] %></p>
+          <p><%= event["created_at"] %></p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
