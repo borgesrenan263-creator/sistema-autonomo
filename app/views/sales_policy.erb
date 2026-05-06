@@ -1,0 +1,59 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Concierge</p>
+    <h2>Autonomous Sales Policy</h2>
+    <p>Cérebro comercial: decide próxima ação para deals, pagamentos, entregas e abordagens.</p>
+  </div>
+
+  <div class="task-actions">
+    <form method="POST" action="/sales/policy/run">
+      <button type="submit" class="pipeline-rescan-btn">Rodar política comercial</button>
+    </form>
+
+    <a class="pipeline-rescan-btn" href="/sales/policy.json">JSON</a>
+    <a class="pipeline-rescan-btn" href="/money/recovery">Money Recovery</a>
+    <a class="pipeline-rescan-btn" href="/concierge/decisions">Decisões</a>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Decisões comerciais recentes</h2>
+      <p class="panel-subtitle">Geradas automaticamente pela política comercial.</p>
+    </div>
+  </div>
+
+  <% if @latest_sales_policy_decisions.empty? %>
+    <p class="muted">Nenhuma decisão comercial ainda.</p>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Entidade</th>
+          <th>Tipo</th>
+          <th>Decisão</th>
+          <th>Confiança</th>
+          <th>Risco</th>
+          <th>Ação</th>
+          <th>Status execução</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @latest_sales_policy_decisions.each do |d| %>
+          <tr>
+            <td><%= d["id"] %></td>
+            <td><%= d["entity_type"] %>#<%= d["entity_id"] %></td>
+            <td><%= d["decision_type"] %></td>
+            <td><%= d["decision"] %></td>
+            <td><%= d["confidence"] %></td>
+            <td><%= d["risk_level"] %></td>
+            <td><%= d["action_taken"] %></td>
+            <td><%= d["execution_status"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>
