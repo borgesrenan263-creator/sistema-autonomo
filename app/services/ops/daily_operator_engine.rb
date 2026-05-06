@@ -284,15 +284,18 @@ class DailyOperatorEngine
              end
 
     {
-      latest: latest,
-      events: events,
-      counts: {
+      "latest" => latest,
+      :latest => latest,
+      "events" => events,
+      :events => events,
+      "counts" => {
         total: count_table("autopilot_daily_loop_runs"),
         done: count_where("autopilot_daily_loop_runs", "status = 'done'"),
         partial: count_where("autopilot_daily_loop_runs", "status = 'partial'"),
         failed: count_where("autopilot_daily_loop_runs", "status = 'failed'")
       },
-      health: autopilot_daily_loop_health(latest)
+      "health" => autopilot_daily_loop_health(latest),
+      :health => autopilot_daily_loop_health(latest)
     }
   rescue => e
     empty_autopilot_daily_loop_snapshot.merge(
@@ -305,7 +308,7 @@ class DailyOperatorEngine
     {
       latest: nil,
       events: [],
-      counts: {
+      "counts" => {
         total: 0,
         done: 0,
         partial: 0,
