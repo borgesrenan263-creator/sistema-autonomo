@@ -1,0 +1,60 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Receita</p>
+    <h2>Stale Deal Closer</h2>
+    <p>Fecha automaticamente deals sem resposta depois de um período seguro.</p>
+  </div>
+
+  <div class="task-actions">
+    <a class="pipeline-rescan-btn" href="/money/recovery">Money Recovery</a>
+    <a class="pipeline-rescan-btn" href="/money/stale-deals.json?days=<%= @days %>">JSON</a>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Candidatos a perdido</h2>
+      <p class="panel-subtitle">Regra atual: proposta_criada + follow-up enviado + sem resposta/pagamento após <%= @days %> dias.</p>
+    </div>
+
+    <form method="GET" action="/money/stale-deals" class="task-actions">
+      <input type="number" name="days" value="<%= @days %>" min="1" style="max-width: 90px;">
+      <button type="submit" class="pipeline-rescan-btn">Preview</button>
+    </form>
+  </div>
+
+  <% if @stale_deals.empty? %>
+    <p class="muted">Nenhum deal candidato a perdido.</p>
+  <% else %>
+    <form method="POST" action="/money/stale-deals/close">
+      <input type="hidden" name="days" value="<%= @days %>">
+      <button type="submit" class="pipeline-rescan-btn">Marcar candidatos como perdidos</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Task</th>
+          <th>Status</th>
+          <th>Valor</th>
+          <th>Último follow-up</th>
+          <th>Próxima ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @stale_deals.each do |deal| %>
+          <tr>
+            <td><%= deal["id"] %></td>
+            <td><%= deal["task_id"] %></td>
+            <td><%= deal["status"] %></td>
+            <td>R$ <%= "%.2f" % deal["value"].to_f %></td>
+            <td><%= deal["last_followup_at"] %></td>
+            <td><%= deal["next_action"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>
