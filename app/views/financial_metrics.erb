@@ -1,0 +1,244 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Financeiro / Métricas</p>
+    <h2>Financial Metrics Center</h2>
+    <p>
+      Receita confirmada, pendências, ticket médio, conversão e previsão simples da operação.
+    </p>
+  </div>
+
+  <a class="pipeline-rescan-btn" href="/finance/metrics.json">JSON</a>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Receita confirmada</span>
+    <strong>R$ <%= "%.2f" % @snapshot[:totals][:revenue_paid] %></strong>
+  </div>
+
+  <div>
+    <span>Receita pendente</span>
+    <strong>R$ <%= "%.2f" % @snapshot[:totals][:revenue_pending] %></strong>
+  </div>
+
+  <div>
+    <span>Ticket médio</span>
+    <strong>R$ <%= "%.2f" % @snapshot[:totals][:average_ticket] %></strong>
+  </div>
+
+  <div>
+    <span>Conversão pagamento</span>
+    <strong><%= @snapshot[:totals][:conversion_payment_rate] %>%</strong>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Pagamentos</span>
+    <strong><%= @snapshot[:totals][:payments_count] %></strong>
+  </div>
+
+  <div>
+    <span>Pagos</span>
+    <strong><%= @snapshot[:totals][:paid_count] %></strong>
+  </div>
+
+  <div>
+    <span>Pendentes</span>
+    <strong><%= @snapshot[:totals][:pending_count] %></strong>
+  </div>
+
+  <div>
+    <span>Deals</span>
+    <strong><%= @snapshot[:totals][:deals_count] %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Alertas financeiros</h2>
+      <p class="panel-subtitle">Pendências ou pontos de atenção.</p>
+    </div>
+  </div>
+
+  <% if @snapshot[:warnings].empty? %>
+    <div class="empty-state">Nenhum alerta financeiro.</div>
+  <% else %>
+    <div class="timeline">
+      <% @snapshot[:warnings].each do |warning| %>
+        <div class="timeline-item">
+          <small>warning</small>
+          <strong><%= warning %></strong>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Receita por dia</h2>
+  </div>
+
+  <% if @snapshot[:revenue_by_day].empty? %>
+    <div class="empty-state">Nenhuma receita confirmada por dia.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Receita</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @snapshot[:revenue_by_day].each do |date, amount| %>
+            <tr>
+              <td><%= date %></td>
+              <td>R$ <%= "%.2f" % amount %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Pagamentos por status</h2>
+    </div>
+
+    <div class="timeline">
+      <% @snapshot[:payments_by_status].each do |status, count| %>
+        <div class="timeline-item">
+          <small><%= status %></small>
+          <strong><%= count %></strong>
+        </div>
+      <% end %>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Deals por status</h2>
+    </div>
+
+    <div class="timeline">
+      <% @snapshot[:deals_by_status].each do |status, count| %>
+        <div class="timeline-item">
+          <small><%= status %></small>
+          <strong><%= count %></strong>
+        </div>
+      <% end %>
+    </div>
+  </article>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Receita por provider</h2>
+    </div>
+
+    <div class="timeline">
+      <% @snapshot[:revenue_by_provider].each do |provider, amount| %>
+        <div class="timeline-item">
+          <small><%= provider %></small>
+          <strong>R$ <%= "%.2f" % amount %></strong>
+        </div>
+      <% end %>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Receita por status do deal</h2>
+    </div>
+
+    <div class="timeline">
+      <% @snapshot[:revenue_by_deal_status].each do |status, amount| %>
+        <div class="timeline-item">
+          <small><%= status %></small>
+          <strong>R$ <%= "%.2f" % amount %></strong>
+        </div>
+      <% end %>
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Pagamentos pagos recentes</h2>
+  </div>
+
+  <% if @snapshot[:latest_paid].empty? %>
+    <div class="empty-state">Nenhum pagamento pago recente.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Deal</th>
+            <th>Task</th>
+            <th>Valor</th>
+            <th>Provider</th>
+            <th>Pago em</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @snapshot[:latest_paid].each do |p| %>
+            <tr>
+              <td><%= p["id"] %></td>
+              <td><%= p["deal_id"] %></td>
+              <td><%= p["task_id"] %></td>
+              <td>R$ <%= "%.2f" % (p["amount"] || 0).to_f %></td>
+              <td><%= p["provider"] || p["method"] || "-" %></td>
+              <td><%= p["paid_at"] || "-" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Pagamentos pendentes</h2>
+  </div>
+
+  <% if @snapshot[:latest_pending].empty? %>
+    <div class="empty-state">Nenhum pagamento pendente.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Deal</th>
+            <th>Task</th>
+            <th>Valor</th>
+            <th>Provider</th>
+            <th>Criado em</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @snapshot[:latest_pending].each do |p| %>
+            <tr>
+              <td><%= p["id"] %></td>
+              <td><%= p["deal_id"] %></td>
+              <td><%= p["task_id"] %></td>
+              <td>R$ <%= "%.2f" % (p["amount"] || 0).to_f %></td>
+              <td><%= p["provider"] || p["method"] || "-" %></td>
+              <td><%= p["created_at"] || "-" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
