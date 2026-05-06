@@ -1,0 +1,111 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Operação</p>
+    <h2>Operational Queue Center</h2>
+    <p>Fila de jobs, travas, pendências e cancelamento seguro de jobs órfãos.</p>
+  </div>
+
+  <div class="task-actions">
+    <a class="pipeline-rescan-btn" href="/ops/queue.json">JSON</a>
+    <a class="pipeline-rescan-btn" href="/command-center">Command Center</a>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Queued</span>
+    <strong><%= @queue_snapshot[:counts][:queued] %></strong>
+  </div>
+
+  <div>
+    <span>Running</span>
+    <strong><%= @queue_snapshot[:counts][:running] %></strong>
+  </div>
+
+  <div>
+    <span>Failed</span>
+    <strong><%= @queue_snapshot[:counts][:failed] %></strong>
+  </div>
+
+  <div>
+    <span>Stuck</span>
+    <strong><%= @queue_snapshot[:counts][:stuck] %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Jobs travados</h2>
+      <p class="panel-subtitle">Queued/running sem atualização há mais de 15 minutos.</p>
+    </div>
+  </div>
+
+  <% if @queue_snapshot[:stuck_jobs].empty? %>
+    <p class="muted">Nenhum job travado.</p>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tipo</th>
+          <th>Status</th>
+          <th>Prioridade</th>
+          <th>Erro</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @queue_snapshot[:stuck_jobs].each do |job| %>
+          <tr>
+            <td><%= job["id"] %></td>
+            <td><%= job["job_type"] %></td>
+            <td><%= job["status"] %></td>
+            <td><%= job["priority"] %></td>
+            <td><%= job["last_error"] %></td>
+            <td>
+              <form method="POST" action="/ops/queue/<%= job["id"] %>/cancel">
+                <input type="hidden" name="reason" value="cancelled_stuck_job_from_ops_queue">
+                <button type="submit" class="pipeline-rescan-btn">Cancelar</button>
+              </form>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Últimos jobs</h2>
+      <p class="panel-subtitle">Amostra recente da fila operacional.</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tipo</th>
+        <th>Status</th>
+        <th>Prioridade</th>
+        <th>Resultado</th>
+        <th>Erro</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @queue_snapshot[:latest_jobs].each do |job| %>
+        <tr>
+          <td><%= job["id"] %></td>
+          <td><%= job["job_type"] %></td>
+          <td><%= job["status"] %></td>
+          <td><%= job["priority"] %></td>
+          <td><%= job["result"] %></td>
+          <td><%= job["last_error"] %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>
