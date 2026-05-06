@@ -237,7 +237,7 @@ class ConciergeDecisionExecutor
     proposal_id = nil
     contact_id = nil
 
-    if table_exists?("proposals")
+    if table_exists?("proposals") && table_has_column?("proposals", "value")
       @db.execute(
         <<~SQL,
           INSERT INTO proposals
@@ -245,6 +245,30 @@ class ConciergeDecisionExecutor
             task_id,
             status,
             value,
+            notes,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?)
+        SQL
+        [
+          task["id"],
+          "draft",
+          value,
+          "Proposta preparada automaticamente pelo Concierge Decision Executor.",
+          now,
+          now
+        ]
+      )
+      proposal_id = @db.last_insert_row_id
+    elsif table_exists?("proposals") && table_has_column?("proposals", "suggested_price")
+      @db.execute(
+        <<~SQL,
+          INSERT INTO proposals
+          (
+            task_id,
+            status,
+            suggested_price,
             notes,
             created_at,
             updated_at
