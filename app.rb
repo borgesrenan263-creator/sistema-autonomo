@@ -54,6 +54,7 @@ require_relative "app/routes/notification_routes"
 require_relative "app/routes/channel_observability_routes"
 require_relative "app/routes/payment_provider_routes"
 require_relative "app/routes/response_inbox_routes"
+require_relative "app/routes/revenue_autopilot_routes"
 
 
 

@@ -1,0 +1,111 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Revenue Autopilot</p>
+    <h2>Motor de Renda Semi-Passiva</h2>
+    <p>
+      Executa o ciclo operacional: coleta, concierge, canais, observabilidade e notificações.
+    </p>
+  </div>
+
+  <form method="POST" action="/revenue-autopilot/run">
+    <button type="submit" class="pipeline-rescan-btn">Rodar Ciclo Agora</button>
+  </form>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Logs</span>
+    <strong><%= @logs.count %></strong>
+  </div>
+
+  <div>
+    <span>Notificações</span>
+    <strong><%= @notifications.count %></strong>
+  </div>
+
+  <div>
+    <span>Sinais abertos</span>
+    <strong><%= @signals.count %></strong>
+  </div>
+
+  <div>
+    <span>Status</span>
+    <strong>ativo</strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Sinais Operacionais Abertos</h2>
+      <p class="panel-subtitle">O que ainda depende de resposta, pagamento, validação ou evento externo.</p>
+    </div>
+  </div>
+
+  <% if @signals.empty? %>
+    <div class="empty-state">Nenhum sinal aberto.</div>
+  <% else %>
+    <div class="timeline">
+      <% @signals.each do |s| %>
+        <div class="timeline-item">
+          <small>#<%= s["id"] %> · <%= s["signal_type"] %> · <%= s["severity"] %> · <%= s["created_at"] %></small>
+          <strong><%= s["title"] %></strong>
+          <p><%= s["detail"] %></p>
+          <% if s["link"] && !s["link"].empty? %>
+            <a class="btn-link" href="<%= s["link"] %>">Abrir</a>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Últimas Notificações</h2>
+      <p class="panel-subtitle">Eventos importantes criados pelo sistema.</p>
+    </div>
+  </div>
+
+  <% if @notifications.empty? %>
+    <div class="empty-state">Nenhuma notificação.</div>
+  <% else %>
+    <div class="deliveries-list">
+      <% @notifications.each do |n| %>
+        <article class="delivery-row">
+          <div class="delivery-row-main">
+            <small>#<%= n["id"] %> · <%= n["kind"] %> · <%= n["status"] %> · <%= n["created_at"] %></small>
+            <strong><%= n["title"] %></strong>
+            <p><%= n["body"] %></p>
+          </div>
+
+          <div class="delivery-row-actions">
+            <% if n["link"] && !n["link"].empty? %>
+              <a class="btn-link" href="<%= n["link"] %>">Abrir</a>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Log do Revenue Autopilot</h2>
+      <p class="panel-subtitle"><%= @log_path %></p>
+    </div>
+  </div>
+
+  <pre class="terminal"><%= @logs.join %></pre>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Rodar em modo contínuo</h2>
+  </div>
+
+  <pre class="terminal">REVENUE_AUTOPILOT_INTERVAL_SECONDS=300 ruby workers/revenue_autopilot_worker.rb</pre>
+</section>
