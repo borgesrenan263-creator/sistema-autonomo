@@ -118,6 +118,26 @@ class DispatchAutopilotEngine
     result
   end
 
+
+  def recover_waiting_limit(limit: 10)
+    candidates = @db.execute(
+      <<~SQL,
+        SELECT *
+        FROM outreach_messages
+        WHERE status = 'queued'
+          AND policy_status = 'approved'
+          AND dispatch_autopilot_status = 'recipient_resolved_waiting_limit'
+        ORDER BY id ASC
+        LIMIT ?
+      SQL
+      [limit]
+    ).map { |row| clean(row) }
+
+    candidates.map do |message|
+      process_one(message["id"])
+    end
+  end
+
   private
 
   def process_message(message, run_id)

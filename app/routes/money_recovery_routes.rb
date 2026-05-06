@@ -38,3 +38,12 @@ post "/money/recovery/run-daily-loop" do
   redirect "/money/recovery"
 end
 
+
+post "/money/recovery/recover-daily-limit" do
+  require_relative "../services/channels/dispatch_autopilot_engine"
+
+  DispatchAutopilotEngine.new(DB).recover_waiting_limit(limit: 10)
+
+  redirect "/money/recovery"
+end
+
