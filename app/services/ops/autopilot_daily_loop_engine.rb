@@ -2,6 +2,9 @@
 
 require "json"
 require "time"
+require_relative "../revenue/followup_autopilot_engine"
+require_relative "../concierge/concierge_decision_executor"
+require_relative "../channels/dispatch_autopilot_engine"
 
 class AutopilotDailyLoopEngine
   STEPS = [
