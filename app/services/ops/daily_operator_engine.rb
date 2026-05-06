@@ -271,4 +271,60 @@ class DailyOperatorEngine
   def all(sql, params = [])
     @db.execute(sql, params).map { |row| row.reject { |k, _| k.is_a?(Integer) } }
   end
+
+  def autopilot_daily_loop_snapshot
+    return empty_autopilot_daily_loop_snapshot unless table_exists?("autopilot_daily_loop_runs")
+
+    latest = first_row("SELECT * FROM autopilot_daily_loop_runs ORDER BY id DESC LIMIT 1")
+    events = if table_exists?("autopilot_daily_loop_events")
+               execute("SELECT * FROM autopilot_daily_loop_events ORDER BY id DESC LIMIT 5")
+             else
+               []
+             end
+
+    {
+      latest: latest,
+      events: events,
+      counts: {
+        total: count_table("autopilot_daily_loop_runs"),
+        done: count_where("autopilot_daily_loop_runs", "status = 'done'"),
+        partial: count_where("autopilot_daily_loop_runs", "status = 'partial'"),
+        failed: count_where("autopilot_daily_loop_runs", "status = 'failed'")
+      },
+      health: autopilot_daily_loop_health(latest)
+    }
+  rescue => e
+    empty_autopilot_daily_loop_snapshot.merge(
+      error: "#{e.class}: #{e.message}",
+      health: "error"
+    )
+  end
+
+  def empty_autopilot_daily_loop_snapshot
+    {
+      latest: nil,
+      events: [],
+      counts: {
+        total: 0,
+        done: 0,
+        partial: 0,
+        failed: 0
+      },
+      health: "missing"
+    }
+  end
+
+  def autopilot_daily_loop_health(latest)
+    return "missing" unless latest
+
+    status = latest["status"].to_s
+    failed = latest["steps_failed"].to_i
+
+    return "ok" if status == "done" && failed.zero?
+    return "attention" if status == "partial"
+    return "error" if status == "failed"
+
+    "attention"
+  end
+
 end

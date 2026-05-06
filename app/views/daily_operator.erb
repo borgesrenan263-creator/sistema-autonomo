@@ -7,6 +7,71 @@
     </p>
   </div>
 
+<% if @snapshot && @snapshot[:autopilot_daily_loop] %>
+  <% loop = @snapshot[:autopilot_daily_loop] %>
+  <% latest_loop = loop[:latest] %>
+
+  <div class="card mt-4">
+    <div class="card-header">
+      <div>
+        <p class="eyebrow">Autopilot</p>
+        <h2>Último Daily Loop</h2>
+      </div>
+      <a class="btn-secondary" href="/autopilot/daily-loop">Abrir Daily Loop</a>
+    </div>
+
+    <% if latest_loop %>
+      <div class="grid cards-grid">
+        <article class="card">
+          <span class="card-label">Status</span>
+          <strong><%= latest_loop["status"] %></strong>
+        </article>
+
+        <article class="card">
+          <span class="card-label">Origem</span>
+          <strong><%= latest_loop["trigger_source"] %></strong>
+        </article>
+
+        <article class="card">
+          <span class="card-label">Steps</span>
+          <strong><%= latest_loop["steps_ok"] %>/<%= latest_loop["steps_total"] %></strong>
+        </article>
+
+        <article class="card">
+          <span class="card-label">Bloqueios dispatch</span>
+          <strong><%= latest_loop["dispatch_blocked"] %></strong>
+        </article>
+      </div>
+
+      <p class="muted mt-2"><%= latest_loop["summary"] %></p>
+
+      <% if loop[:events] && loop[:events].any? %>
+        <table>
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Status</th>
+              <th>Detalhe</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% loop[:events].each do |event| %>
+              <tr>
+                <td><%= event["step_title"] || event["step_key"] %></td>
+                <td><%= event["status"] %></td>
+                <td><%= event["detail"] || event["error"] %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+    <% else %>
+      <p class="muted">Nenhum Daily Loop executado ainda.</p>
+    <% end %>
+  </div>
+<% end %>
+
+
   <div class="task-actions">
     <form method="POST" action="/command-center/run-cycle">
       <button type="submit" class="pipeline-rescan-btn">Rodar ciclo do dia</button>
