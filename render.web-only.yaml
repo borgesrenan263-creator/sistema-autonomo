@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: sistema-autonomo-web
+    runtime: ruby
+    plan: free
+    buildCommand: bundle install
+    startCommand: bundle exec ruby app.rb
+    healthCheckPath: /uptime
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: RACK_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CHANNEL_DISPATCH_ENABLED
+        value: "false"
+      - key: CHANNEL_DAILY_LIMIT
+        value: "10"
+      - key: AUTOPILOT_DAILY_LOOP_INTERVAL_MINUTES
+        value: "30"
+      - key: JOB_WORKER_INTERVAL_SECONDS
+        value: "60"
+      - key: STALE_DEAL_DAYS
+        value: "7"
+      - key: JOB_QUEUE_BASE_URL
+        value: https://sistema-autonomo-web.onrender.com
