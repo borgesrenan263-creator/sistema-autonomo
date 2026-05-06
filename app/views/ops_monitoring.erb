@@ -1,0 +1,198 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Operations / Monitoring</p>
+    <h2>External Monitoring & Uptime</h2>
+    <p>
+      Status operacional do sistema, banco, jobs, workers, integrações e alertas.
+    </p>
+  </div>
+
+  <a class="pipeline-rescan-btn" href="/ops/monitoring.json">JSON</a>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Database</span>
+    <strong><%= @snapshot[:database][:ok] ? "OK" : "FAIL" %></strong>
+  </div>
+
+  <div>
+    <span>Jobs failed</span>
+    <strong><%= @snapshot[:jobs][:failed] %></strong>
+  </div>
+
+  <div>
+    <span>Jobs stuck</span>
+    <strong><%= @snapshot[:jobs][:stuck] %></strong>
+  </div>
+
+  <div>
+    <span>Alerts</span>
+    <strong><%= @snapshot[:alerts].count %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Alertas</h2>
+  </div>
+
+  <% if @snapshot[:alerts].empty? %>
+    <div class="empty-state">Nenhum alerta operacional.</div>
+  <% else %>
+    <div class="timeline">
+      <% @snapshot[:alerts].each do |alert| %>
+        <div class="timeline-item">
+          <small>alert</small>
+          <strong><%= alert %></strong>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Banco</h2>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <small>database</small>
+        <strong><%= @snapshot[:database][:ok] ? "Conectado" : "Falha" %></strong>
+        <p>Adapter: <%= @snapshot[:database][:adapter] || "-" %></p>
+        <% if @snapshot[:database][:error] %>
+          <p><%= @snapshot[:database][:error] %></p>
+        <% end %>
+      </div>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Revenue Autopilot</h2>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <small><%= @snapshot[:revenue_autopilot][:log_path] %></small>
+        <strong><%= @snapshot[:revenue_autopilot][:log_exists] ? "Log encontrado" : "Sem log" %></strong>
+        <p><%= @snapshot[:revenue_autopilot][:last_event] || "Nenhum evento recente." %></p>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Heartbeats</h2>
+  </div>
+
+  <% if @snapshot[:heartbeats].empty? %>
+    <div class="empty-state">Nenhum heartbeat registrado ainda.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Status</th>
+            <th>Fresh</th>
+            <th>Age</th>
+            <th>Last seen</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @snapshot[:heartbeats].each do |hb| %>
+            <tr>
+              <td><%= hb["component"] %></td>
+              <td><%= hb["status"] %></td>
+              <td><%= hb["fresh"] ? "yes" : "no" %></td>
+              <td><%= hb["age_seconds"] || "-" %>s</td>
+              <td><%= hb["last_seen_at"] %></td>
+              <td><%= hb["detail"] || "-" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Jobs</h2>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item"><small>queued</small><strong><%= @snapshot[:jobs][:queued] %></strong></div>
+      <div class="timeline-item"><small>running</small><strong><%= @snapshot[:jobs][:running] %></strong></div>
+      <div class="timeline-item"><small>done</small><strong><%= @snapshot[:jobs][:done] %></strong></div>
+      <div class="timeline-item"><small>failed</small><strong><%= @snapshot[:jobs][:failed] %></strong></div>
+      <div class="timeline-item"><small>stuck</small><strong><%= @snapshot[:jobs][:stuck] %></strong></div>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Integrações</h2>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <small>SMTP</small>
+        <strong><%= @snapshot[:integrations][:smtp][:provider] || "-" %></strong>
+        <p>
+          enabled=<%= @snapshot[:integrations][:smtp][:dispatch_enabled] %>,
+          host=<%= @snapshot[:integrations][:smtp][:host_configured] %>,
+          user=<%= @snapshot[:integrations][:smtp][:user_configured] %>,
+          password=<%= @snapshot[:integrations][:smtp][:password_configured] %>
+        </p>
+      </div>
+
+      <div class="timeline-item">
+        <small>PIX Webhook</small>
+        <strong><%= @snapshot[:integrations][:pix_webhook][:secret_configured] ? "configured" : "missing/unsafe" %></strong>
+      </div>
+
+      <div class="timeline-item">
+        <small>Response Webhook</small>
+        <strong><%= @snapshot[:integrations][:response_webhook][:secret_configured] ? "configured" : "missing/unsafe" %></strong>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Últimos jobs</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tipo</th>
+          <th>Status</th>
+          <th>Tentativas</th>
+          <th>Erro</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @snapshot[:jobs][:latest_jobs].each do |job| %>
+          <tr>
+            <td><%= job["id"] %></td>
+            <td><%= job["job_type"] %></td>
+            <td><%= job["status"] %></td>
+            <td><%= job["attempts"] %>/<%= job["max_attempts"] %></td>
+            <td><%= job["last_error"] || "-" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

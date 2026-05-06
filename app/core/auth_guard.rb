@@ -5,6 +5,7 @@ module AuthGuard
     "/login",
     "/healthz",
     "/readyz",
+    "/uptime",
     "/manifest.json"
   ]
 

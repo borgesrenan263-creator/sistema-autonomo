@@ -2,6 +2,8 @@ require "net/http"
 require "uri"
 require "time"
 require "fileutils"
+require_relative "../config/database"
+require_relative "../app/services/ops/ops_heartbeat"
 
 ROOT = File.expand_path("..", __dir__)
 LOG_PATH = File.join(ROOT, "storage", "logs", "revenue_autopilot.log")
@@ -18,14 +20,17 @@ class RevenueAutopilotWorker
   end
 
   def run_once
+    OpsHeartbeat.new(DB).beat(component: "revenue_autopilot", status: "ok", detail: "cycle_start") if defined?(DB)
     log("REVENUE_AUTOPILOT_CYCLE_START")
 
     steps.each do |step|
       run_step(step)
     end
 
+    OpsHeartbeat.new(DB).beat(component: "revenue_autopilot", status: "ok", detail: "cycle_done") if defined?(DB)
     log("REVENUE_AUTOPILOT_CYCLE_DONE")
   rescue => e
+    OpsHeartbeat.new(DB).beat(component: "revenue_autopilot", status: "error", detail: "#{e.class}: #{e.message}") if defined?(DB)
     log("REVENUE_AUTOPILOT_CYCLE_ERROR #{e.class}: #{e.message}")
   end
 
