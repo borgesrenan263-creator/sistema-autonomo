@@ -1,4 +1,6 @@
 require "json"
+require "net/http"
+require "uri"
 require "time"
 
 class JobRunner
@@ -56,9 +58,8 @@ class JobRunner
 
     case job["job_type"]
     when "force_rescan"
-      call_if_defined("RealRescan") do
-        RealRescan.new.run
-      end || "force_rescan skipped: RealRescan não encontrado"
+      post_local("/force-rescan")
+      "force_rescan done"
 
     when "concierge_autopilot"
       ConciergeAutopilot.new(@db).run_once
@@ -87,6 +88,19 @@ class JobRunner
     else
       raise "Tipo de job desconhecido: #{job["job_type"]}"
     end
+  end
+
+
+  def post_local(path)
+    base_url = ENV["JOB_QUEUE_BASE_URL"] || "http://127.0.0.1:4567"
+    uri = URI.join(base_url, path)
+
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.open_timeout = 5
+    http.read_timeout = 60
+
+    req = Net::HTTP::Post.new(uri)
+    http.request(req)
   end
 
   def queue_once(job_type, priority:)
