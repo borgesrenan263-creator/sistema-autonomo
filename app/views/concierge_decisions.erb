@@ -1,0 +1,150 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Autonomous Concierge</p>
+    <h2>Decision Engine</h2>
+    <p>
+      O Concierge avalia oportunidades, respostas, cobranças e entregas com autonomia controlada.
+    </p>
+  </div>
+
+  <div class="task-actions">
+    <form method="POST" action="/concierge/decisions/run">
+      <button type="submit" class="pipeline-rescan-btn">Rodar decisões</button>
+    </form>
+
+    <a class="pipeline-rescan-btn" href="/concierge/decisions.json">JSON</a>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Total</span>
+    <strong><%= @dashboard[:counts][:total] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Auto execute</span>
+    <strong><%= @dashboard[:counts][:auto_execute] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Auto block</span>
+    <strong><%= @dashboard[:counts][:auto_block] || 0 %></strong>
+  </div>
+
+  <div>
+    <span>Auto wait</span>
+    <strong><%= @dashboard[:counts][:auto_wait] || 0 %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Regras de política</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Regra</th>
+          <th>Ativa</th>
+          <th>Threshold</th>
+          <th>Ação</th>
+          <th>Descrição</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @dashboard[:rules].each do |rule| %>
+          <tr>
+            <td><%= rule["rule_key"] %></td>
+            <td><%= rule["enabled"] == 1 || rule["enabled"].to_s == "1" ? "sim" : "não" %></td>
+            <td><%= rule["threshold"] %></td>
+            <td><%= rule["action"] %></td>
+            <td><%= rule["description"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Candidatos: respostas</h2>
+    </div>
+
+    <div class="timeline">
+      <% @dashboard[:candidates][:responses].first(6).each do |r| %>
+        <div class="timeline-item">
+          <small>response #<%= r["id"] %> · <%= r["response_status"] %></small>
+          <strong><%= r["body"] || r["raw_body"] || "Resposta" %></strong>
+          <form method="POST" action="/concierge/decisions/response/<%= r["id"] %>">
+            <button type="submit">Avaliar</button>
+          </form>
+        </div>
+      <% end %>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Candidatos: oportunidades</h2>
+    </div>
+
+    <div class="timeline">
+      <% @dashboard[:candidates][:opportunities].first(6).each do |t| %>
+        <div class="timeline-item">
+          <small>task #<%= t["id"] %> · <%= t["quality_status"] %></small>
+          <strong><%= t["title"] %></strong>
+          <p><%= t["url"] %></p>
+          <form method="POST" action="/concierge/decisions/task/<%= t["id"] %>">
+            <button type="submit">Avaliar</button>
+          </form>
+        </div>
+      <% end %>
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Decisões recentes</h2>
+  </div>
+
+  <% if @dashboard[:latest_decisions].empty? %>
+    <div class="empty-state">Nenhuma decisão registrada ainda.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Entidade</th>
+            <th>Tipo</th>
+            <th>Decisão</th>
+            <th>Confiança</th>
+            <th>Risco</th>
+            <th>Ação</th>
+            <th>Motivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @dashboard[:latest_decisions].each do |d| %>
+            <tr>
+              <td><%= d["id"] %></td>
+              <td><%= d["entity_type"] %>#<%= d["entity_id"] %></td>
+              <td><%= d["decision_type"] %></td>
+              <td><%= d["decision"] %></td>
+              <td><%= d["confidence"] %></td>
+              <td><%= d["risk_level"] %></td>
+              <td><%= d["action_taken"] %></td>
+              <td><%= d["reason"] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
