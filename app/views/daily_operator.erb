@@ -9,7 +9,7 @@
 
 <% loop = (@snapshot[:autopilot_daily_loop] || @snapshot["autopilot_daily_loop"]) rescue nil %>
 <% if loop %>
-  <% latest_loop = loop[:latest] %>
+  <% latest_loop = (loop[:latest] || loop["latest"]) rescue nil %>
 
   <div class="card mt-4">
     <div class="card-header">
