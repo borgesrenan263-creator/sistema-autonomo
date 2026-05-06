@@ -1,0 +1,78 @@
+<section class="page-section">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Autopilot</p>
+      <h1>Daily Loop</h1>
+      <p class="muted">Ciclo único: follow-up, concierge, dispatch e heartbeat.</p>
+    </div>
+
+    <form method="post" action="/autopilot/daily-loop/run">
+      <button class="btn-primary" type="submit">Rodar ciclo agora</button>
+    </form>
+  </div>
+
+  <% latest = @snapshot[:latest_run] %>
+
+  <div class="grid cards-grid">
+    <article class="card">
+      <span class="card-label">Runs</span>
+      <strong><%= @snapshot[:counts][:runs] %></strong>
+    </article>
+
+    <article class="card">
+      <span class="card-label">Done</span>
+      <strong><%= @snapshot[:counts][:done] %></strong>
+    </article>
+
+    <article class="card">
+      <span class="card-label">Partial/Failed</span>
+      <strong><%= @snapshot[:counts][:failed] %></strong>
+    </article>
+
+    <article class="card">
+      <span class="card-label">Último status</span>
+      <strong><%= latest ? latest["status"] : "-" %></strong>
+    </article>
+  </div>
+
+  <% if latest %>
+    <div class="card mt-4">
+      <h2>Último ciclo</h2>
+      <p><strong>ID:</strong> <%= latest["id"] %></p>
+      <p><strong>Status:</strong> <%= latest["status"] %></p>
+      <p><strong>Início:</strong> <%= latest["started_at"] %></p>
+      <p><strong>Fim:</strong> <%= latest["finished_at"] %></p>
+      <p><strong>Resumo:</strong> <%= latest["summary"] %></p>
+    </div>
+  <% end %>
+
+  <div class="card mt-4">
+    <h2>Estado atual</h2>
+    <pre><%= JSON.pretty_generate(@snapshot[:current_state]) %></pre>
+  </div>
+
+  <div class="card mt-4">
+    <h2>Eventos recentes</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Step</th>
+          <th>Status</th>
+          <th>Detalhe</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @snapshot[:latest_events].each do |event| %>
+          <tr>
+            <td><%= event["id"] %></td>
+            <td><%= event["step_title"] %></td>
+            <td><%= event["status"] %></td>
+            <td><%= event["detail"] || event["error"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

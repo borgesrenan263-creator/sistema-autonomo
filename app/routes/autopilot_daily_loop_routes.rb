@@ -1,0 +1,18 @@
+# frozen_string_literal: true
+
+require_relative "../services/ops/autopilot_daily_loop_engine"
+
+get "/autopilot/daily-loop" do
+  @snapshot = AutopilotDailyLoopEngine.new(DB).snapshot
+  erb :autopilot_daily_loop
+end
+
+get "/autopilot/daily-loop.json" do
+  content_type :json
+  JSON.pretty_generate(AutopilotDailyLoopEngine.new(DB).snapshot)
+end
+
+post "/autopilot/daily-loop/run" do
+  AutopilotDailyLoopEngine.new(DB).run!(trigger_source: "manual_route")
+  redirect "/autopilot/daily-loop"
+end
