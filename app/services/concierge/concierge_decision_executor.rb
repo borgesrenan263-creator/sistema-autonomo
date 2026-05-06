@@ -15,7 +15,7 @@ class ConciergeDecisionExecutor
     }
   end
 
-  def run_batch(limit: 20)
+  def run_batch(limit = 20)
     pending_decisions.first(limit).map do |decision|
       execute(decision["id"])
     rescue => e
