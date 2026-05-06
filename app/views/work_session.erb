@@ -1,0 +1,199 @@
+<section class="pipeline-hero">
+  <div>
+    <p class="eyebrow">Solo Work Session</p>
+    <h2>Daily Runbook</h2>
+    <p>
+      Inicie, conduza e encerre sua sessão diária de trabalho remoto.
+    </p>
+  </div>
+
+  <div class="task-actions">
+    <% if @dashboard[:active_session] %>
+      <form method="POST" action="/work-session/end">
+        <button type="submit" class="pipeline-rescan-btn">Encerrar sessão</button>
+      </form>
+    <% else %>
+      <form method="POST" action="/work-session/start">
+        <button type="submit" class="pipeline-rescan-btn">Iniciar sessão</button>
+      </form>
+    <% end %>
+
+    <form method="POST" action="/work-session/run-cycle">
+      <button type="submit" class="pipeline-rescan-btn">Rodar ciclo do dia</button>
+    </form>
+
+    <a class="pipeline-rescan-btn" href="/work-session.json">JSON</a>
+  </div>
+</section>
+
+<section class="pipeline-metrics-strip">
+  <div>
+    <span>Sessões hoje</span>
+    <strong><%= @dashboard[:today_summary][:sessions_count] %></strong>
+  </div>
+
+  <div>
+    <span>Sessão ativa</span>
+    <strong><%= @dashboard[:active_session] ? "SIM" : "NÃO" %></strong>
+  </div>
+
+  <div>
+    <span>Ações hoje</span>
+    <strong><%= @dashboard[:today_summary][:actions_count] %></strong>
+  </div>
+
+  <div>
+    <span>Receita sessão</span>
+    <strong>R$ <%= "%.2f" % @dashboard[:today_summary][:revenue_delta] %></strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Checklist da sessão</h2>
+  </div>
+
+  <div class="timeline">
+    <% @dashboard[:checklist].each do |item| %>
+      <div class="timeline-item">
+        <small><%= item[:done] ? "ok" : "pendente" %></small>
+        <strong><%= item[:done] ? "✅" : "⚠️" %> <%= item[:label] %></strong>
+      </div>
+    <% end %>
+  </div>
+</section>
+
+<% if @dashboard[:active_session] %>
+  <% session = @dashboard[:active_session] %>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <h2>Sessão ativa</h2>
+        <p class="panel-subtitle">
+          Iniciada em <%= session["started_at"] %> · duração <%= session["duration_minutes"] %> min
+        </p>
+      </div>
+    </div>
+
+    <section class="pipeline-metrics-strip">
+      <div>
+        <span>Ações</span>
+        <strong><%= session["summary"][:events_count] %></strong>
+      </div>
+
+      <div>
+        <span>Receita inicial</span>
+        <strong>R$ <%= "%.2f" % session["revenue_start"].to_f %></strong>
+      </div>
+
+      <div>
+        <span>Receita atual</span>
+        <strong>R$ <%= "%.2f" % session["revenue_end"].to_f %></strong>
+      </div>
+
+      <div>
+        <span>Delta</span>
+        <strong>R$ <%= "%.2f" % session["revenue_delta"].to_f %></strong>
+      </div>
+    </section>
+  </section>
+<% else %>
+  <section class="panel">
+    <div class="empty-state">
+      Nenhuma sessão ativa. Clique em “Iniciar sessão” para começar seu expediente remoto.
+    </div>
+  </section>
+<% end %>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Registrar ação manual</h2>
+  </div>
+
+  <form method="POST" action="/work-session/log" class="form-grid">
+    <label>
+      Tipo
+      <input name="event_type" value="manual_note">
+    </label>
+
+    <label>
+      Título
+      <input name="title" placeholder="Ex: Revisei resposta do contato">
+    </label>
+
+    <label>
+      Link
+      <input name="link" placeholder="/responses/action-center">
+    </label>
+
+    <label>
+      Observação
+      <textarea name="body" placeholder="Resumo da ação"></textarea>
+    </label>
+
+    <button type="submit">Registrar</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Eventos da sessão ativa</h2>
+  </div>
+
+  <% if !@dashboard[:active_session] || @dashboard[:active_session]["events"].empty? %>
+    <div class="empty-state">Nenhum evento registrado na sessão ativa.</div>
+  <% else %>
+    <div class="timeline">
+      <% @dashboard[:active_session]["events"].each do |event| %>
+        <div class="timeline-item">
+          <small><%= event["created_at"] %> · <%= event["event_type"] %></small>
+          <strong><%= event["title"] %></strong>
+          <p><%= event["body"] || "-" %></p>
+          <% if event["link"] && !event["link"].empty? %>
+            <a href="<%= event["link"] %>">Abrir</a>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Histórico de sessões</h2>
+  </div>
+
+  <% if @dashboard[:latest_sessions].empty? %>
+    <div class="empty-state">Nenhuma sessão registrada.</div>
+  <% else %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Início</th>
+            <th>Fim</th>
+            <th>Duração</th>
+            <th>Ações</th>
+            <th>Receita Delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @dashboard[:latest_sessions].each do |session| %>
+            <tr>
+              <td><%= session["id"] %></td>
+              <td><%= session["status"] %></td>
+              <td><%= session["started_at"] %></td>
+              <td><%= session["ended_at"] || "-" %></td>
+              <td><%= session["duration_minutes"] %> min</td>
+              <td><%= session["actions_count"] %></td>
+              <td>R$ <%= "%.2f" % session["revenue_delta"].to_f %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
