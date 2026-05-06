@@ -131,7 +131,7 @@ class DispatchAutopilotEngine
         LIMIT ?
       SQL
       [limit]
-    ).map { |row| clean(row) }
+    ).map { |row| row.reject { |k, _| k.is_a?(Integer) } }
 
     candidates.map do |message|
       process_one(message["id"])
