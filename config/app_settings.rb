@@ -12,6 +12,12 @@ module AppSettings
 
     "PIX_PROVIDER" => "manual",
     "EMAIL_PROVIDER" => "manual",
+
+    "CHANNEL_DISPATCH_ENABLED" => "false",
+    "CHANNEL_DAILY_LIMIT" => "20",
+    "CHANNEL_SEND_WINDOW_START" => "08:00",
+    "CHANNEL_SEND_WINDOW_END" => "18:00",
+    "SMTP_FROM" => "",
     "WHATSAPP_PROVIDER" => "manual"
   }
 
@@ -85,6 +91,12 @@ module AppSettings
         "SMTP_PORT",
         "SMTP_USER",
         "SMTP_PASSWORD",
+
+        "CHANNEL_DISPATCH_ENABLED",
+        "CHANNEL_DAILY_LIMIT",
+        "CHANNEL_SEND_WINDOW_START",
+        "CHANNEL_SEND_WINDOW_END",
+        "SMTP_FROM",
         "WHATSAPP_TOKEN",
         "WHATSAPP_PHONE_NUMBER_ID"
       ]

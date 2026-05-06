@@ -1,8 +1,9 @@
 require "time"
 require "net/smtp"
+require "securerandom"
 
 class ChannelDispatchEngine
-  DAILY_LIMIT = 20
+  DEFAULT_DAILY_LIMIT = 20
 
   def initialize(db)
     @db = db
@@ -31,7 +32,6 @@ class ChannelDispatchEngine
 
       provider = dispatch_provider
       recipient = message["contact_email"].to_s.strip
-
       policy = policy_check(message, provider, recipient)
 
       create_dispatch(message, provider, recipient, policy)
@@ -56,6 +56,8 @@ class ChannelDispatchEngine
   end
 
   def send_dispatch(dispatch)
+    return mark_blocked(dispatch, "outside_send_window") unless inside_send_window?
+
     provider = dispatch["provider"].to_s
 
     case provider
@@ -65,39 +67,16 @@ class ChannelDispatchEngine
       mark_manual(dispatch)
     end
   rescue => e
-    now = Time.now.iso8601
-
-    @db.execute(
-      <<~SQL,
-        UPDATE channel_dispatches
-        SET status = 'failed',
-            attempts = attempts + 1,
-            last_error = ?,
-            updated_at = ?
-        WHERE id = ?
-      SQL
-      ["#{e.class}: #{e.message}", now, dispatch["id"]]
-    )
+    mark_failed(dispatch, "#{e.class}: #{e.message}")
   end
 
   private
 
   def dispatch_provider
-    provider =
-      if defined?(AppSettings)
-        AppSettings.get("EMAIL_PROVIDER").to_s
-      else
-        ENV["EMAIL_PROVIDER"].to_s
-      end
+    email_provider = setting("EMAIL_PROVIDER")
+    enabled = setting("CHANNEL_DISPATCH_ENABLED") == "true"
 
-    enabled =
-      if defined?(AppSettings)
-        AppSettings.get("CHANNEL_DISPATCH_ENABLED").to_s == "true"
-      else
-        ENV["CHANNEL_DISPATCH_ENABLED"].to_s == "true"
-      end
-
-    return "smtp_email" if provider == "smtp" && enabled
+    return "smtp_email" if enabled && email_provider == "smtp"
 
     "manual_channel"
   end
@@ -106,19 +85,27 @@ class ChannelDispatchEngine
     return deny("missing_message") unless message
     return deny("missing_contact") if message["contact_id"].to_s.empty?
 
-    if provider == "smtp_email" && recipient.empty?
-      return deny("missing_email_for_smtp")
+    if provider == "smtp_email"
+      return deny("missing_email_for_smtp") if recipient.empty?
+      return deny("smtp_not_configured") unless smtp_configured?
     end
 
-    if daily_limit_reached?(provider)
-      return deny("daily_limit_reached")
-    end
-
-    if already_sent_to_contact_recently?(message["contact_id"])
-      return deny("recent_contact_dispatch")
-    end
+    return deny("outside_send_window") unless inside_send_window?
+    return deny("daily_limit_reached") if daily_limit_reached?(provider)
+    return deny("recent_contact_dispatch") if already_sent_to_contact_recently?(message["contact_id"])
 
     allow("dispatch_allowed")
+  end
+
+  def smtp_configured?
+    !setting("SMTP_HOST").empty? &&
+      !setting("SMTP_USER").empty? &&
+      !setting("SMTP_PASSWORD").empty?
+  end
+
+  def daily_limit
+    value = setting("CHANNEL_DAILY_LIMIT").to_i
+    value > 0 ? value : DEFAULT_DAILY_LIMIT
   end
 
   def daily_limit_reached?(provider)
@@ -133,7 +120,19 @@ class ChannelDispatchEngine
       [provider]
     )
 
-    row["c"].to_i >= DAILY_LIMIT
+    row["c"].to_i >= daily_limit
+  end
+
+  def inside_send_window?
+    start_time = setting("CHANNEL_SEND_WINDOW_START")
+    end_time = setting("CHANNEL_SEND_WINDOW_END")
+
+    return true if start_time.empty? || end_time.empty?
+
+    now = Time.now
+    current = now.strftime("%H:%M")
+
+    current >= start_time && current <= end_time
   end
 
   def already_sent_to_contact_recently?(contact_id)
@@ -154,7 +153,6 @@ class ChannelDispatchEngine
 
   def create_dispatch(message, provider, recipient, policy)
     now = Time.now.iso8601
-
     status = policy[:allowed] ? "queued" : "blocked"
 
     @db.execute(
@@ -173,10 +171,11 @@ class ChannelDispatchEngine
           status,
           policy_status,
           policy_reason,
+          send_window_status,
           created_at,
           updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       SQL
       [
         message["id"],
@@ -191,6 +190,7 @@ class ChannelDispatchEngine
         status,
         policy[:allowed] ? "approved" : "denied",
         policy[:reason],
+        inside_send_window? ? "inside_window" : "outside_window",
         now,
         now
       ]
@@ -202,19 +202,23 @@ class ChannelDispatchEngine
     port = setting("SMTP_PORT").to_i
     user = setting("SMTP_USER")
     pass = setting("SMTP_PASSWORD")
-    from = user.to_s.strip
+    from = setting("SMTP_FROM")
+    from = user if from.empty?
 
-    raise "SMTP_HOST missing" if host.to_s.strip.empty?
-    raise "SMTP_USER missing" if user.to_s.strip.empty?
-    raise "SMTP_PASSWORD missing" if pass.to_s.strip.empty?
+    raise "SMTP_HOST missing" if host.empty?
+    raise "SMTP_USER missing" if user.empty?
+    raise "SMTP_PASSWORD missing" if pass.empty?
     raise "recipient missing" if dispatch["recipient"].to_s.strip.empty?
 
     port = 587 if port <= 0
+
+    message_id = "sa-#{SecureRandom.hex(12)}@sistema-autonomo.local"
 
     message = <<~MAIL
       From: #{from}
       To: #{dispatch["recipient"]}
       Subject: #{dispatch["subject"]}
+      Message-ID: <#{message_id}>
 
       #{dispatch["body"]}
     MAIL
@@ -224,14 +228,14 @@ class ChannelDispatchEngine
       smtp.send_message(message, from, dispatch["recipient"])
     end
 
-    mark_sent(dispatch, "smtp_email_sent")
+    mark_sent(dispatch, "smtp_email_sent", message_id)
   end
 
   def mark_manual(dispatch)
-    mark_sent(dispatch, "manual_channel_marked_sent")
+    mark_sent(dispatch, "manual_channel_marked_sent", nil)
   end
 
-  def mark_sent(dispatch, reason)
+  def mark_sent(dispatch, reason, external_message_id)
     now = Time.now.iso8601
 
     @db.execute(
@@ -241,19 +245,64 @@ class ChannelDispatchEngine
             attempts = attempts + 1,
             last_error = NULL,
             policy_reason = ?,
+            external_message_id = COALESCE(external_message_id, ?),
+            delivery_log = ?,
             updated_at = ?,
-            sent_at = ?
+            sent_at = ?,
+            completed_at = ?
         WHERE id = ?
       SQL
-      [reason, now, now, dispatch["id"]]
+      [
+        reason,
+        external_message_id,
+        "sent_by=#{dispatch["provider"]};reason=#{reason}",
+        now,
+        now,
+        now,
+        dispatch["id"]
+      ]
+    )
+  end
+
+  def mark_failed(dispatch, error)
+    now = Time.now.iso8601
+
+    @db.execute(
+      <<~SQL,
+        UPDATE channel_dispatches
+        SET status = 'failed',
+            attempts = attempts + 1,
+            last_error = ?,
+            delivery_log = ?,
+            updated_at = ?
+        WHERE id = ?
+      SQL
+      [error, error, now, dispatch["id"]]
+    )
+  end
+
+  def mark_blocked(dispatch, reason)
+    now = Time.now.iso8601
+
+    @db.execute(
+      <<~SQL,
+        UPDATE channel_dispatches
+        SET status = 'blocked',
+            policy_status = 'denied',
+            policy_reason = ?,
+            send_window_status = 'outside_window',
+            updated_at = ?
+        WHERE id = ?
+      SQL
+      [reason, now, dispatch["id"]]
     )
   end
 
   def setting(key)
     if defined?(AppSettings)
-      AppSettings.get(key).to_s
+      AppSettings.get(key).to_s.strip
     else
-      ENV[key].to_s
+      ENV[key].to_s.strip
     end
   end
 

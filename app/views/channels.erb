@@ -2,7 +2,7 @@
   <div>
     <p class="eyebrow">Canais Externos</p>
     <h2>Channel Dispatch</h2>
-    <p>Automação específica para envio externo controlado. SMTP só envia se estiver habilitado em settings.</p>
+    <p>Automação específica para envio externo controlado. SMTP só envia se CHANNEL_DISPATCH_ENABLED=true e EMAIL_PROVIDER=smtp.</p>
   </div>
 
   <div class="task-actions">
@@ -41,6 +41,7 @@
               <span><%= d["status"] %></span>
               <span><%= d["policy_status"] %></span>
               <span><%= d["policy_reason"] %></span>
+              <span><%= d["external_message_id"] || "sem-message-id" %></span>
             </div>
           </div>
         </article>
